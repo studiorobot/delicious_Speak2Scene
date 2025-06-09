@@ -9,8 +9,7 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { parseVoiceCommand } from './voiceParser'
 
 // Firebase imports
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from './firebase/firebase'
+import { fetchImagesBySelection } from './firebase/firebase_helper_functions'
 
 // Style imports
 import './App.css'
@@ -144,23 +143,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 	}, [currentScene])
 
 	const fetchImages = async () => {
-		const q = query(
-			collection(db, 'participants'),
-			where('participantId', '==', participant),
-			where('storyboardId', '==', storyboard.id),
-			where('selected', '==', true)
-		)
-
-		const querySnapshot = await getDocs(q)
-
-		const results = querySnapshot.docs.map((doc) => {
-			const data = doc.data()
-			return {
-				id: doc.id,
-				...data,
-			}
-		})
-		console.log('Fetched images:', results)
+		let results = await fetchImagesBySelection(participant, storyboard.id)
 		const imagesByScene = {}
 		results.forEach((image) => {
 			if (!imagesByScene[image.sceneId]) {
@@ -197,7 +180,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 	return (
 		<div>
 			{!currentScene ? (
-				<>
+				<div style={{ border: '5px dashed #dc267f', borderRadius: '8px', padding: '10px' }}>
 					<div className="container-lr">
 						<div>
 							<div className="status-bar">
@@ -228,9 +211,9 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 									<p>
 										<strong>Transcript:</strong> {transcript}
 									</p>
-									<p>
+									{/* <p>
 										<strong>Captured Prompt:</strong> {captured}
-									</p>
+									</p> */}
 								</>
 							) : (
 								''
@@ -268,7 +251,6 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 								>
 									<p>
 										<strong>Scene {scene.id}: </strong>
-										{scene.title}
 									</p>
 
 									{selectedImages[scene.id]?.[0]?.downloadURL && (
@@ -282,7 +264,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 									)}
 
 									<button
-										className="scene-button"
+										className="scene-button2"
 										onClick={() =>
 											handleVoiceCommand(`go to scene ${scene.id}`)
 										}
@@ -293,7 +275,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 							))}
 						</Carousel>
 					</div>
-				</>
+				</div>
 			) : (
 				<IndividualScene
 					participant={participant}

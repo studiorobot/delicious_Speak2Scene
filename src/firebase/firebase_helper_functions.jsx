@@ -124,6 +124,35 @@ export async function setSelectedImage(participantId, storyboardId, sceneId, ima
 	}
 }
 
+export async function fetchImages(participantId, storyboardId, sceneId) {
+	const q = query(
+		collection(db, 'participants'),
+		where('participantId', '==', participantId),
+		where('storyboardId', '==', storyboardId),
+		where('sceneId', '==', sceneId)
+	)
+
+	const querySnapshot = await getDocs(q)
+
+	const results = querySnapshot.docs.map((doc) => {
+		const data = doc.data()
+		return {
+			id: doc.id,
+			...data,
+		}
+	})
+
+	results.sort((a, b) => {
+		// First: selected first
+		if (a.selected && !b.selected) return -1
+		if (!a.selected && b.selected) return 1
+
+		// Then: descending imageId
+		return b.imageId - a.imageId
+	})
+	return [...results]
+}
+
 // fetch images for a specific participant, storyboard, and if selected
 export async function fetchImagesBySelection(participantId, storyboardId) {
 	try {
@@ -160,6 +189,35 @@ export async function fetchCharacter(participantId) {
 			where('participantId', '==', participantId),
 			where('storyboardId', '==', 0),
 			where('sceneId', '==', 0),
+			where('selected', '==', true)
+		)
+
+		const querySnapshot = await getDocs(q)
+
+		const results = querySnapshot.docs.map((doc) => {
+			const data = doc.data()
+			return {
+				id: doc.id,
+				...data,
+			}
+		})
+		console.log(results)
+		return results
+	} catch (error) {
+		console.error('Error fetching images:', error)
+		throw error
+	}
+}
+
+// fetch robot for a specific participant
+export async function fetchRobot(participantId) {
+	console.log(participantId)
+	try {
+		const q = query(
+			collection(db, 'participants'),
+			where('participantId', '==', participantId),
+			where('storyboardId', '==', 0.1),
+			where('sceneId', '==', 0.1),
 			where('selected', '==', true)
 		)
 

@@ -10,7 +10,7 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { parseVoiceCommand } from './voiceParser'
 
 // Firebase imports
-import { fetchCharacter } from './firebase/firebase_helper_functions'
+import { fetchCharacter, fetchRobot } from './firebase/firebase_helper_functions'
 
 // Style imports
 import './App.css'
@@ -27,6 +27,7 @@ const HOT_WORDS = {
 	STOP: 'stop listening',
 	CLEAR_TRANSCRIPT: 'clear transcript',
 	CHARACTER: 'character',
+	ROBOT: 'robot',
 	SCROLL_RIGHT: 'scroll right',
 	SCROLL_LEFT: 'scroll left',
 }
@@ -39,7 +40,9 @@ export function AllStoryBoards({ storyboards }) {
 	const [captured, setCaptured] = useState('')
 	const [currentStoryboard, setCurrentStoryboard] = useState(null)
 	const [character, setCharacter] = useState(false)
+	const [robot, setRobot] = useState(false)
 	const [characterImage, setCharacterImage] = useState(null)
+	const [robotImage, setRobotImage] = useState(null)
 	const participant = useParams().participant
 
 	const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
@@ -52,11 +55,11 @@ export function AllStoryBoards({ storyboards }) {
 		},
 		desktop: {
 			breakpoint: { max: 2000, min: 900 },
-			items: 4,
+			items: 3,
 		},
 		tablet: {
 			breakpoint: { max: 900, min: 768 },
-			items: 3,
+			items: 2,
 		},
 		mobile: {
 			breakpoint: { max: 768, min: 0 },
@@ -92,10 +95,23 @@ export function AllStoryBoards({ storyboards }) {
 			status === STATUS.LISTENING &&
 			lower.includes(HOT_WORDS.CHARACTER) &&
 			lower.includes(HOT_WORDS.STOP) &&
-			!currentStoryboard
+			!currentStoryboard &&
+			!robot
 		) {
 			console.log('Character creation triggered')
 			setCharacter(true)
+			setStatus(STATUS.WAITING)
+			resetTranscript()
+			return
+		} else if (
+			status === STATUS.LISTENING &&
+			lower.includes(HOT_WORDS.ROBOT) &&
+			lower.includes(HOT_WORDS.STOP) &&
+			!currentStoryboard &&
+			!character
+		) {
+			console.log('Robot creation triggered')
+			setRobot(true)
 			setStatus(STATUS.WAITING)
 			resetTranscript()
 			return
@@ -160,24 +176,32 @@ export function AllStoryBoards({ storyboards }) {
 		const fetchData = async () => {
 			try {
 				const charImg = await fetchCharacter(participant)
+				const roboImg = await fetchRobot(participant)
 				console.log('Character image:', charImg)
-				setCharacterImage(charImg[0].downloadURL)
+				console.log('Robot image:', roboImg)
+				if (charImg.length > 0) {
+					setCharacterImage(charImg[0].downloadURL)
+				}
+				if (roboImg.length > 0) {
+					setRobotImage(roboImg[0].downloadURL)
+				}
 			} catch (error) {
 				console.error('Error:', error)
 			}
 		}
 		fetchData()
-	}, [character])
+	}, [character, robot])
 
 	function backFunc() {
 		setCurrentStoryboard(null)
 		setCharacter(false)
+		setRobot(false)
 	}
 
 	return (
-		<div>
-			{!currentStoryboard && !character ? (
-				<>
+		<div style={{ height: '100vh' }}>
+			{!currentStoryboard && !character && !robot ? (
+				<div style={{ border: '5px solid #ffb000', borderRadius: '8px', padding: '10px' }}>
 					<div className="status-bar">
 						<p className="participant">
 							<strong>Participant:</strong>
@@ -201,9 +225,9 @@ export function AllStoryBoards({ storyboards }) {
 									<p>
 										<strong>Transcript:</strong> {transcript}
 									</p>{' '}
-									<p>
+									{/* <p>
 										<strong>Captured Prompt:</strong> {captured}
-									</p>
+									</p> */}
 								</>
 							) : (
 								''
@@ -211,7 +235,7 @@ export function AllStoryBoards({ storyboards }) {
 
 							<div
 								style={{
-									maxWidth: '70vw',
+									maxWidth: '60vw',
 									overflow: 'hidden',
 									marginTop: '10px',
 								}}
@@ -236,16 +260,18 @@ export function AllStoryBoards({ storyboards }) {
 												margin: '10px',
 												border: '1px solid #ccc',
 												borderRadius: '8px',
-												height: '250px',
+												height: '150px',
 											}}
 										>
 											<p>
-												<strong>
-													{sb.id}. {sb.title}
-												</strong>
+												{sb.type === 'Moments' ? (
+													<strong>Storyboard {sb.id} (Moment)</strong>
+												) : (
+													<strong>Storyboard {sb.id}</strong>
+												)}
 											</p>
 											<button
-												className="scene-button"
+												className="scene-button1"
 												onClick={() =>
 													handleVoiceCommand(`go to storyboard ${sb.id}`)
 												}
@@ -257,65 +283,6 @@ export function AllStoryBoards({ storyboards }) {
 								</Carousel>
 							</div>
 						</div>
-						{/* <div className="right">
-							<ul>
-								<li>
-									Say{' '}
-									<strong
-										style={{
-											backgroundColor:
-												status === STATUS.WAITING
-													? '#FFC6E2'
-													: '#C6E2FF',
-										}}
-									>
-										<u>start listening</u>
-									</strong>{' '}
-									to begin voice control.
-								</li>
-								<li>
-									While listening:
-									<ul>
-										<li>
-											Say{' '}
-											<strong>
-												<u>go to storyboard [number]</u>
-											</strong>{' '}
-											to navigate to a storyboard.
-										</li>
-										<li>
-											Say{' '}
-											<strong>
-												<u>clear transcript</u>
-											</strong>{' '}
-											to clear and restart.
-										</li>
-										<li>
-											Say{' '}
-											<strong>
-												<u>scroll [right/left]</u>
-											</strong>{' '}
-											to view storyboards hidden
-										</li>
-									</ul>
-								</li>
-								<li>
-									Say{' '}
-									<strong
-										style={{
-											backgroundColor:
-												status === STATUS.LISTENING
-													? '#0BDA51'
-													: '#C6E2FF',
-										}}
-									>
-										<u>stop listening</u>
-									</strong>{' '}
-									to end voice control.
-								</li>
-							</ul>
-						</div> */}
-
 						<div className="right">
 							<div
 								style={{
@@ -323,33 +290,63 @@ export function AllStoryBoards({ storyboards }) {
 									margin: '10px',
 									border: '1px solid #ccc',
 									borderRadius: '8px',
-									width: '200px',
+									width: '150px',
 									height: 'auto',
+									display: 'inline-block',
 								}}
 							>
 								<p>
 									<strong>Character</strong>
 								</p>
 								<img src={characterImage} className="scene-image" width="100%" />
-								<button className="scene-button" onClick={() => setCharacter(true)}>
+								<button
+									className="scene-button1"
+									onClick={() => setCharacter(true)}
+								>
+									Go
+								</button>
+							</div>
+							<div
+								style={{
+									padding: '10px',
+									margin: '10px',
+									border: '1px solid #ccc',
+									borderRadius: '8px',
+									width: '150px',
+									height: 'auto',
+									display: 'inline-block',
+								}}
+							>
+								<p>
+									<strong>Robot</strong>
+								</p>
+								<img src={robotImage} className="scene-image" width="100%" />
+								<button className="scene-button1" onClick={() => setRobot(true)}>
 									Go
 								</button>
 							</div>
 						</div>
 					</div>
-				</>
-			) : !character ? (
+				</div>
+			) : !character && !robot ? (
 				<StoryBoard
 					participant={participant}
 					storyboard={currentStoryboard}
 					onBack={() => backFunc()}
 				/>
-			) : (
+			) : !robot ? (
 				<IndividualScene
 					participant={participant}
 					storyboard={{ id: 0 }}
 					scene={{ id: 0 }}
 					onBack={() => setCharacter(false)}
+				/>
+			) : (
+				<IndividualScene
+					participant={participant}
+					storyboard={{ id: 0.1 }}
+					scene={{ id: 0.1 }}
+					onBack={() => setRobot(false)}
 				/>
 			)}
 		</div>

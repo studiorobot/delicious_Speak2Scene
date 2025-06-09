@@ -6,7 +6,11 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { parseVoiceCommand } from './voiceParser'
 
 // OpenAI API imports
-import { generateImage, generateImageWithReference } from './api/openai'
+import {
+	generateImage,
+	generateRobotWithRobotReference,
+	generateSceneWithCharacterRobotReference,
+} from './api/openai'
 
 // Firebase imports
 import {
@@ -14,9 +18,9 @@ import {
 	setSelectedImage,
 	setAllImagesUnselected,
 	fetchCharacter,
+	fetchRobot,
+	fetchImages,
 } from './firebase/firebase_helper_functions'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from './firebase/firebase'
 
 // Style imports
 import './App.css'
@@ -24,6 +28,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleLeft } from '@fortawesome/free-solid-svg-icons'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 
 const STATUS = {
 	WAITING: 'Waiting',
@@ -46,7 +52,8 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 	const [status, setStatus] = useState(STATUS.WAITING)
 	const [captured, setCaptured] = useState('')
 	const [images, setImages] = useState([])
-	const [selectedImageId, setSelectedImageId] = useState(null)
+	const [loadingImg, setLoadingImg] = useState(false)
+	const [progress, setProgress] = useState(0)
 
 	const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
 		useSpeechRecognition()
@@ -137,39 +144,73 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 			setCaptured(cleanedTranscript)
 			let parsed = parseVoiceCommand(cleanedTranscript)
 			console.log('Parsed command:', parsed)
-			if (parsed && parsed.context === HOT_WORDS.CHANGE_IMAGE) {
-				setSelectedImage(participant, storyboard.id, scene.id, parseInt(parsed.number))
-				setSelectedImageId(parseInt(parsed.number))
-				setStatus(STATUS.WAITING)
-			} else {
-				setStatus(STATUS.GENERATING_IMAGE)
+			const updateImageAndRefresh = async () => {
+				if (parsed && parsed.context === HOT_WORDS.CHANGE_IMAGE) {
+					await setSelectedImage(
+						participant,
+						storyboard.id,
+						scene.id,
+						parseInt(parsed.number)
+					)
+					await fetchAllImages()
+					setStatus(STATUS.WAITING)
+				} else {
+					setStatus(STATUS.GENERATING_IMAGE)
+          setImageUrl(null)
+				}
+				resetTranscript()
 			}
-			resetTranscript()
+
+			updateImageAndRefresh()
 		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.CLEAR_TRANSCRIPT)) {
 			console.log('clear triggered')
 			resetTranscript()
 		}
-	}, [status, transcript, selectedImageId])
+	}, [status, transcript, images])
 
 	useEffect(() => {
 		if (status === STATUS.GENERATING_IMAGE && captured.length > 0) {
 			const generateAndUpload = async () => {
+				let intervalId
 				try {
+					setLoadingImg(true)
+					setProgress(0) // Reset progress
+					intervalId = setInterval(() => {
+						setProgress((prev) => {
+							// Cap at 90%, leave room for final jump
+							if (prev >= 90) return 90
+							return prev + 1 + Math.random() * 0.3
+						})
+					}, 500)
 					console.log('Generating image for:', captured)
 					let url = null
+					let imgPrompt = captured
 					if (storyboard.id === 0) {
 						// character creation
-						url = await generateImage(captured)
+						let imgDetails = await generateImage(captured)
+						url = imgDetails.imageUrl
+						imgPrompt = imgDetails.prompt
+					} else if (storyboard.id === 0.1) {
+						// robot creation
+						let imgDetails = await generateRobotWithRobotReference(captured)
+						url = imgDetails.imageUrl
+						imgPrompt = imgDetails.prompt
 					} else {
-						console.log('here')
 						const characterImageURL = await fetchCharacter(participant)
 						const useRobotImage = storyboard.robot
+						let robotImageURL = null
+						if (useRobotImage) {
+							robotImageURL = await fetchRobot(participant)
+						}
 						console.log('characterImageURL', characterImageURL[0].downloadURL)
-						url = await generateImageWithReference(
+						let imgDetails = await generateSceneWithCharacterRobotReference(
 							captured,
 							characterImageURL[0],
 							useRobotImage
 						)
+						console.log('here')
+						url = imgDetails.imageUrl
+						imgPrompt = imgDetails.prompt
 					}
 					if (url) {
 						setImageUrl(url)
@@ -193,53 +234,43 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							participantId,
 							storyboardId,
 							sceneId,
-							captured,
+							imgPrompt,
 							true
 						)
-						fetchImages()
+						fetchAllImages()
 						console.log('Image uploaded and referenced in Firestore')
 					}
+					setProgress(100)
 					setStatus(STATUS.WAITING)
 				} catch (error) {
 					console.error('Error during image generation/upload:', error)
+					clearInterval(intervalId)
+					setLoadingImg(false)
+					setProgress(100)
 					setStatus(STATUS.WAITING)
+				} finally {
+					clearInterval(intervalId)
+					setLoadingImg(false)
+					setProgress(100)
 				}
 			}
-
 			generateAndUpload()
 		}
 	}, [status])
 
 	useEffect(() => {
-		fetchImages()
+		fetchAllImages()
 	}, [storyboard, scene])
 
-	const fetchImages = async () => {
-		const q = query(
-			collection(db, 'participants'),
-			where('participantId', '==', participant),
-			where('storyboardId', '==', storyboard.id),
-			where('sceneId', '==', scene.id)
-		)
-
-		const querySnapshot = await getDocs(q)
-
-		let selectedId = null
-		const results = querySnapshot.docs.map((doc) => {
-			const data = doc.data()
-			if (data.selected) selectedId = data.imageId
-			return {
-				id: doc.id,
-				...data,
-			}
-		})
-
+	const fetchAllImages = async () => {
+		console.log(storyboard.id, scene.id)
+		let results = await fetchImages(participant, storyboard.id, scene.id)
 		setImages(results)
-		setSelectedImageId(selectedId)
+		console.log('Fetched images:', results)
 	}
 
 	return (
-		<div>
+		<div style={{ border: '5px dotted #648fff', borderRadius: '8px', padding: '10px' }}>
 			<div className="container-lr">
 				<div>
 					<div className="status-bar">
@@ -275,12 +306,31 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							<p>
 								<strong>Transcript:</strong> {transcript}
 							</p>
-							<p>
+							{/* <p>
 								<strong>Captured Prompt:</strong> {captured}
-							</p>
+							</p> */}
 						</>
 					) : (
 						''
+					)}
+					{!imageUrl && loadingImg && (
+						<div
+							style={{
+								display: 'inline-block',
+								width: '150px',
+								height: '150px',
+								border: '1px solid black',
+								borderRadius: '6px',
+								textAlign: 'center',
+							}}
+						>
+							<p>{STATUS.GENERATING_IMAGE}</p>
+							<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+								{loadingImg && progress < 100 && (
+									<CircularProgress variant="determinate" value={progress} />
+								)}
+							</Box>
+						</div>
 					)}
 					{imageUrl && (
 						<div>
@@ -322,13 +372,11 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 								padding: '10px',
 								margin: '10px',
 								border:
-									img.imageId === selectedImageId
-										? '3px solid green'
-										: '1px solid #ccc',
+									img.selected === true ? '3px solid #648fff' : '1px solid #ccc',
 								borderRadius: '10px',
 								boxShadow:
-									img.imageId === selectedImageId
-										? '0 4px 12px green'
+									img.selected === true
+										? '0 4px 12px #648fff'
 										: '0 2px 8px rgba(0,0,0,0.1)',
 							}}
 						>
@@ -351,10 +399,10 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							>
 								<strong>Image: </strong>
 								{img.imageId}
-								{selectedImageId === img.imageId && (
+								{img.selected === true && (
 									<div
 										style={{
-											color: 'green',
+											color: '#648fff',
 											fontWeight: 'bold',
 										}}
 									>
