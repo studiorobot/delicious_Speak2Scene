@@ -56,6 +56,7 @@ import Fuse from 'fuse.js'
 const validContexts = [
 	'storyboard',
 	'scene',
+  'moment',
 	'change image',
 	'go back',
 	'scroll right',

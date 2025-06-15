@@ -178,7 +178,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 					intervalId = setInterval(() => {
 						setProgress((prev) => {
 							// Cap at 90%, leave room for final jump
-							if (prev >= 90) return 90
+							if (prev >= 99) return 99
 							return prev + 1 + Math.random() * 0.3
 						})
 					}, 500)
@@ -296,9 +296,13 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
 							Create your character
 						</h4>
-					) : (
-						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-							Scene: {scene.title}
+					) : storyboard.id === 0.1 ? (<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
+							Create your Robot
+						</h4>) : (
+						storyboard.type === "Moments" ? <h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
+						  Moment: {scene.title}
+						</h4> : <h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
+						  Scene: {scene.title}
 						</h4>
 					)}
 					{status === STATUS.LISTENING ? (
