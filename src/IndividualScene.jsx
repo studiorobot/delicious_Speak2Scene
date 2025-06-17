@@ -302,7 +302,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						storyboard.type === "Moments" ? <h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
 						  Moment: {scene.title}
 						</h4> : <h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-						  Scene: {scene.title}
+						  Scene {scene.id}: {scene.title}
 						</h4>
 					)}
 					{status === STATUS.LISTENING ? (
