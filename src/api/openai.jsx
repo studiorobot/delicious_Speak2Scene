@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const PROMPT_TO_CONVERT_CHARACTER_TO_TEXT = `Based on the provided image, generate a detailed and objective description of the character. Include physical attributes, clothing and appearance, any assistive or mobility features the character may use, and notable facial expressions or body language that might hint at their personality or emotional state. Do not attempt to identify or name the character—focus solely on descriptive analysis.`
 const DESCRIPTION_OF_KINOVA = `The robot is a Kinova robotic arm that is lightweight, assistive manipulator designed for close human interaction. It features six or seven degrees of freedom with smooth and articulated joints, allowing for versatile object manipulation. Commonly used in assistive technology, it can be mounted on wide variety of platforms (e.g., wheelchair, table, tripod stand, etc.) to help users with tasks like eating, grabbing objects, or performing personal care. Its safe, low-force design and compatibility with various control interfaces (e.g., joystick, sip-and-puff, or voice commands) make it ideal for individuals with limited mobility.`
-const PROMPT_TO_CONVERT_ROBOT_TO_TEXT = `Based on the provided robot image, provide a brief description of the emobodiment of the robot.`
+const PROMPT_TO_CONVERT_ROBOT_TO_TEXT = `Based on the provided robot image, provide a brief description of the emobodiment of the robot. Capture all the details such that I can replicate the image without ever looking at the image.`
 const ART_STYLE = `### Avoid photorealism. Use sketchy, brush-based illustration techniques, like a concept to generate an image for the following prompt:`
 
 // Provided a prompt, this function generates an image using OpenAI's gpt-image-1 model
@@ -135,7 +135,7 @@ export async function generateSceneWithCharacterRobotReference(
 				response_robot.data.choices[0].message.content +
 				'\n\n'
 		}
-		let supporting_text = `### With this information, generate an image for the following description (Do not change the basic robot physical properties of a Kinova Arm): `
+		let supporting_text = `### Using the information above, generate an image based on the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: `
 		overall_prompt += supporting_text + prompt + '\n\n'
 
 		console.log('Overall prompt:', overall_prompt)
