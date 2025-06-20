@@ -273,7 +273,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 	return (
 		<div style={{ border: '5px dotted #648fff', borderRadius: '8px', padding: '10px' }}>
 			<div className="container-lr">
-				<div className='leftIS'>
+				<div className="leftIS">
 					<div className="status-bar">
 						<FontAwesomeIcon
 							className="go-back-button"
@@ -362,16 +362,46 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						</div>
 					)}
 				</div>
-        <div className='rightIS'>
-          <p style={{marginLeft: "10px"}}><u>start listening</u> <FontAwesomeIcon icon={faArrowRight} /> <i style={{borderRadius: "10px", border: "#648fff 5px solid", padding: "2px"}}>Action</i> <FontAwesomeIcon icon={faArrowRight} /> <u>stop listening</u></p>
-          <ul className='box'>
-            <li><i>[describe scene]​ to generate image</i></li>
-            <li><i><u>clear transcript</u> to clear and restart​</i></li>
-            <li><i><u>change image to [number]</u> to change selected image</i>​</li>
-            <li><i><u>go back</u>​ to storyboard</i></li>
-            <li><i><u>scroll [left/right]</u> to view hidden images​</i></li>
-          </ul>
-        </div>
+				<div className="rightIS">
+					<p style={{ marginLeft: '10px' }}>
+						<u>start listening</u> <FontAwesomeIcon icon={faArrowRight} />{' '}
+						<i
+							style={{
+								borderRadius: '10px',
+								border: '#648fff 5px solid',
+								padding: '2px',
+							}}
+						>
+							Action
+						</i>{' '}
+						<FontAwesomeIcon icon={faArrowRight} /> <u>stop listening</u>
+					</p>
+					<ul className="box">
+						<li>
+							<i>[describe scene] to generate image</i>
+						</li>
+						<li>
+							<i>
+								<u>clear transcript</u> to clear and restart
+							</i>
+						</li>
+						<li>
+							<i>
+								<u>change image to [number]</u> to change selected image
+							</i>
+						</li>
+						<li>
+							<i>
+								<u>go back</u> to storyboard
+							</i>
+						</li>
+						<li>
+							<i>
+								<u>scroll [left/right]</u> to view hidden images
+							</i>
+						</li>
+					</ul>
+				</div>
 			</div>
 
 			<p style={{ marginTop: '5px' }}>Previously Generated Images</p>
