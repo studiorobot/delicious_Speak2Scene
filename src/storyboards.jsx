@@ -38,8 +38,8 @@ export const allStoryboards = [
 			{ id: 6, title: 'Communication to/from robot' },
 			{ id: 7, title: 'Passing Objects' },
 			{ id: 8, title: 'Sharing food' },
-      { id: 9, title: 'Optional' },
-      { id: 10, title: 'Optional' },
+			{ id: 9, title: 'Optional' },
+			{ id: 10, title: 'Optional' },
 		],
 	},
 	// {
@@ -70,8 +70,8 @@ export const allStoryboards = [
 			{ id: 6, title: 'Gestures of Care' },
 			{ id: 7, title: 'Romantic Gestures' },
 			{ id: 8, title: 'Sharing food' },
-      { id: 9, title: 'Optional' },
-      { id: 10, title: 'Optional' },
+			{ id: 9, title: 'Optional' },
+			{ id: 10, title: 'Optional' },
 		],
 	},
 ]

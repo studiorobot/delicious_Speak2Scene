@@ -25,7 +25,7 @@ import {
 // Style imports
 import './App.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleLeft } from '@fortawesome/free-solid-svg-icons'
+import { faCircleLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -156,7 +156,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 					setStatus(STATUS.WAITING)
 				} else {
 					setStatus(STATUS.GENERATING_IMAGE)
-          setImageUrl(null)
+					setImageUrl(null)
 				}
 				resetTranscript()
 			}
@@ -206,7 +206,8 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						let imgDetails = await generateSceneWithCharacterRobotReference(
 							captured,
 							characterImageURL[0],
-							useRobotImage
+							useRobotImage,
+							robotImageURL == null ? null : robotImageURL[0]
 						)
 						console.log('here')
 						url = imgDetails.imageUrl
@@ -272,7 +273,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 	return (
 		<div style={{ border: '5px dotted #648fff', borderRadius: '8px', padding: '10px' }}>
 			<div className="container-lr">
-				<div>
+				<div className='leftIS'>
 					<div className="status-bar">
 						<FontAwesomeIcon
 							className="go-back-button"
@@ -296,13 +297,15 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
 							Create your character
 						</h4>
-					) : storyboard.id === 0.1 ? (<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-							Create your Robot
-						</h4>) : (
-						storyboard.type === "Moments" ? <h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-						  Moment: {scene.title}
-						</h4> : <h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-						  Scene {scene.id}: {scene.title}
+					) : storyboard.id === 0.1 ? (
+						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>Create your Robot</h4>
+					) : storyboard.type === 'Moments' ? (
+						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
+							Moment: {scene.title}
+						</h4>
+					) : (
+						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
+							Scene {scene.id}: {scene.title}
 						</h4>
 					)}
 					{status === STATUS.LISTENING ? (
@@ -329,7 +332,13 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							}}
 						>
 							<p>{STATUS.GENERATING_IMAGE}</p>
-							<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									alignItems: 'center',
+								}}
+							>
 								{loadingImg && progress < 100 && (
 									<CircularProgress variant="determinate" value={progress} />
 								)}
@@ -353,6 +362,16 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						</div>
 					)}
 				</div>
+        <div className='rightIS'>
+          <p style={{marginLeft: "10px"}}><u>start listening</u> <FontAwesomeIcon icon={faArrowRight} /> <i style={{borderRadius: "10px", border: "#648fff 5px solid", padding: "2px"}}>Action</i> <FontAwesomeIcon icon={faArrowRight} /> <u>stop listening</u></p>
+          <ul className='box'>
+            <li><i>[describe scene]​ to generate image</i></li>
+            <li><i><u>clear transcript</u> to clear and restart​</i></li>
+            <li><i><u>change image to [number]</u> to change selected image</i>​</li>
+            <li><i><u>go back</u>​ to storyboard</i></li>
+            <li><i><u>scroll [left/right]</u> to view hidden images​</i></li>
+          </ul>
+        </div>
 			</div>
 
 			<p style={{ marginTop: '5px' }}>Previously Generated Images</p>

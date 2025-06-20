@@ -1,12 +1,9 @@
 import axios from 'axios'
 
-const PROMPT_TO_CONVERT_CHARACTER_TO_TEXT =
-	'Based on the provided image, generate a detailed description of this character. Include physical features, appearance, mobility features that the character might use, and any notable features or expressions that reflects the character’s personality and traits.'
-const DESCRIPTION_OF_KINOVA =
-	'The robot is a Kinova robotic arm that is lightweight, assistive manipulator designed for close human interaction. It features six or seven degrees of freedom with smooth and articulated joints, allowing for versatile object manipulation. Commonly used in assistive technology, it can be mounted on wide variety of platforms (e.g., wheelchair, table, tripod stand, etc.) to help users with tasks like eating, grabbing objects, or performing personal care. Its safe, low-force design and compatibility with various control interfaces (e.g., joystick, sip-and-puff, or voice commands) make it ideal for individuals with limited mobility.'
-const PROMPT_TO_CONVERT_ROBOT_TO_TEXT =
-	'Based on the provided robot image, provide a brief description of the emobodiment of the robot.'
-const ART_STYLE = 'Use watercolor painting style for the following prompt:'
+const PROMPT_TO_CONVERT_CHARACTER_TO_TEXT = `Based on the provided image, generate a detailed and objective description of the character. Include physical attributes, clothing and appearance, any assistive or mobility features the character may use, and notable facial expressions or body language that might hint at their personality or emotional state. Do not attempt to identify or name the character—focus solely on descriptive analysis.`
+const DESCRIPTION_OF_KINOVA = `The robot is a Kinova robotic arm that is lightweight, assistive manipulator designed for close human interaction. It features six or seven degrees of freedom with smooth and articulated joints, allowing for versatile object manipulation. Commonly used in assistive technology, it can be mounted on wide variety of platforms (e.g., wheelchair, table, tripod stand, etc.) to help users with tasks like eating, grabbing objects, or performing personal care. Its safe, low-force design and compatibility with various control interfaces (e.g., joystick, sip-and-puff, or voice commands) make it ideal for individuals with limited mobility.`
+const PROMPT_TO_CONVERT_ROBOT_TO_TEXT = `Based on the provided robot image, provide a brief description of the emobodiment of the robot.`
+const ART_STYLE = `### Avoid photorealism. Use sketchy, brush-based illustration techniques, like a concept to generate an image for the following prompt:`
 
 // Provided a prompt, this function generates an image using OpenAI's gpt-image-1 model
 // model info: https://platform.openai.com/docs/models/gpt-image-1
@@ -33,7 +30,8 @@ export async function generateImage(prompt) {
 
 		const imageUrl = `data:image/png;base64,${response.data.data[0].b64_json}`
 		console.log(response.data)
-		return { imageUrl: imageUrl, prompt: ART_STYLE + '\n\n' + prompt }
+		let overall_prompt = ART_STYLE + '\n\n' + prompt
+		return { imageUrl: imageUrl, prompt: overall_prompt }
 	} catch (error) {
 		console.error('Image generation failed:', error?.response?.data || error.message)
 		return null
@@ -42,8 +40,8 @@ export async function generateImage(prompt) {
 
 // Provided a prompt, this function generates an image of the robot using description of the robot
 export async function generateRobotWithRobotReference(prompt) {
-	let overall_prompt = 'Robot description: ' + DESCRIPTION_OF_KINOVA + '\n\n'
-	overall_prompt += 'Generate an image for the following description: ' + prompt + '\n\n'
+	let overall_prompt = `### Robot description: ` + DESCRIPTION_OF_KINOVA + '\n\n'
+	overall_prompt += `### Generate an image for the following description: ` + prompt + '\n\n'
 	return await generateImage(overall_prompt)
 }
 
@@ -53,7 +51,8 @@ export async function generateRobotWithRobotReference(prompt) {
 export async function generateSceneWithCharacterRobotReference(
 	prompt,
 	charImg,
-	useRobotImage = true
+	useRobotImage = false,
+	robotImg = null
 ) {
 	const endpoint = 'https://api.openai.com/v1/chat/completions'
 	const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
@@ -92,11 +91,11 @@ export async function generateSceneWithCharacterRobotReference(
 		console.log(response_character.data.choices[0].message.content)
 
 		let overall_prompt =
-			'Description of the character: ' +
+			`### Character Description: ` +
 			response_character.data.choices[0].message.content +
 			'\n\n'
 		overall_prompt +=
-			'Original prompt used to generate the character: ' + charImg.prompt + '\n\n'
+			`### Original prompt used to generate the character: ` + charImg.prompt + '\n\n'
 		if (useRobotImage) {
 			console.log('insite')
 			const response_robot = await axios.post(
@@ -114,7 +113,7 @@ export async function generateSceneWithCharacterRobotReference(
 								{
 									type: 'image_url',
 									image_url: {
-										url: charImg.downloadURL,
+										url: robotImg.downloadURL,
 									},
 								},
 							],
@@ -130,14 +129,13 @@ export async function generateSceneWithCharacterRobotReference(
 			)
 
 			console.log(response_robot.data.choices[0].message.content)
-			overall_prompt += 'Basic Robot description: ' + DESCRIPTION_OF_KINOVA + '\n\n'
+			overall_prompt += `### Robot's Physical Description: ` + DESCRIPTION_OF_KINOVA + '\n\n'
 			overall_prompt +=
-				'Robot character description: ' +
+				`### Robot's Character Description: ` +
 				response_robot.data.choices[0].message.content +
 				'\n\n'
 		}
-		let supporting_text =
-			'With this information, generate an image for the following description: '
+		let supporting_text = `### With this information, generate an image for the following description (Do not change the basic robot physical properties of a Kinova Arm): `
 		overall_prompt += supporting_text + prompt + '\n\n'
 
 		console.log('Overall prompt:', overall_prompt)
@@ -151,3 +149,26 @@ export async function generateSceneWithCharacterRobotReference(
 		return null
 	}
 }
+
+
+/**
+ * ### Avoid photorealism. Use sketchy, brush-based illustration techniques, like a concept to generate an image for the following prompt:
+
+### Character Description: The character is a young adult male with short dark hair and facial hair, dressed in casual attire—a simple gray T-shirt and blue jeans. He is seated in a motorized wheelchair, which features a high back and supportive headrest, indicating it is designed for comfort and mobility assistance. 
+
+In front of him is a joystick control, and attached to the chair is a flexible tube-like device, which the character uses with his mouth. This suggests that he utilizes this setup to navigate his surroundings, pointing to his adaptability and resourcefulness in managing mobility challenges.
+
+His body posture is upright, and he maintains a composed facial expression, with his gaze directed forward, conveying a sense of calm determination. His relaxed posture and focused look may imply a confident and resilient personality.
+
+### Original prompt used to generate the character: I would like to create a character based on my life I need is atharva 22-year-old male of Indian descent I'm wearing gray T-shirt with blue jeans black hair brown skin I also use a wheelchair to move around I use it electronic wheelchair and I control the wheelchair using Sip and puff method since I'm unable to use my hands
+
+Use art style: sketch with watercolors
+
+### Robot's Physical Description: The robot is a Kinova robotic arm that is lightweight, assistive manipulator designed for close human interaction. It features six or seven degrees of freedom with smooth and articulated joints, allowing for versatile object manipulation. Commonly used in assistive technology, it can be mounted on wide variety of platforms (e.g., wheelchair, table, tripod stand, etc.) to help users with tasks like eating, grabbing objects, or performing personal care. Its safe, low-force design and compatibility with various control interfaces (e.g., joystick, sip-and-puff, or voice commands) make it ideal for individuals with limited mobility.
+
+### Robot's Character Description: The robot features a sleek, deep blue robotic arm mounted on a wheeled platform. It is designed with multiple joints for a high degree of flexibility and precision. The arm has an attached blue bow tie, adding a touch of personality. The wheels suggest mobility for dynamic tasks.
+
+### With this information, generate an image for the following description: I am with my two other friends finished my dinner and we are all getting ready to pay and exit the restaurant the robot arm helps provide the check to me and I will be paying for all my friends
+
+
+ */

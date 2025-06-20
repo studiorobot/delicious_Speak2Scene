@@ -122,6 +122,24 @@ h1 {
   /* border-radius: 10px; */
 }
 
+.leftIS {
+  display: inline-block;
+  width: 60%;
+}
+
+.box {
+  border-radius: 10px;
+  border: #648fff 5px solid;
+  margin-left: 10px;
+}
+
+.rightIS {
+  display: inline-block;
+  width: 40%;
+  /* background-color: #C6E2FF; */
+  /* border-radius: 10px; */
+}
+
 html,
 body {
   margin-top: 0;

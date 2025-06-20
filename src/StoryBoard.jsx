@@ -90,7 +90,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 			status === STATUS.LISTENING &&
 			lower.includes(HOT_WORDS.GO_BACK) &&
 			lower.includes(HOT_WORDS.STOP) &&
-      !currentScene
+			!currentScene
 		) {
 			console.log('Go back triggered')
 			// setStatus(STATUS.WAITING);
@@ -161,7 +161,10 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 		console.log('Parsed command:', parsed)
 		if (!parsed) return
 
-		if ((storyboard.type === "Storyboard" && parsed.context === 'scene') || (storyboard.type === "Moments" && parsed.context === 'moment')) {
+		if (
+			(storyboard.type === 'Storyboard' && parsed.context === 'scene') ||
+			(storyboard.type === 'Moments' && parsed.context === 'moment')
+		) {
 			const selected = storyboard.scenes.find((s) => s.id === parseInt(parsed.number))
 
 			if (selected) {
@@ -251,7 +254,11 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 									}}
 								>
 									<p>
-										{storyboard.type === "Moments" ? <strong>Moment {scene.id}: </strong> : <strong>Scene {scene.id}: </strong>}
+										{storyboard.type === 'Moments' ? (
+											<strong>Moment {scene.id}: </strong>
+										) : (
+											<strong>Scene {scene.id}: </strong>
+										)}
 									</p>
 
 									{selectedImages[scene.id]?.[0]?.downloadURL && (
@@ -267,7 +274,9 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 									<button
 										className="scene-button2"
 										onClick={() =>
-											storyboard.type === "Moments" ? handleVoiceCommand(`go to moment ${scene.id}`) : handleVoiceCommand(`go to scene ${scene.id}`)
+											storyboard.type === 'Moments'
+												? handleVoiceCommand(`go to moment ${scene.id}`)
+												: handleVoiceCommand(`go to scene ${scene.id}`)
 										}
 									>
 										Go
