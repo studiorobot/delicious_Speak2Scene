@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 
+import { ROBOT_TYPE } from './constants'
 // Speech recognition imports
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { parseVoiceCommand } from './voiceParser'
@@ -206,8 +207,8 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						let imgDetails = await generateSceneWithCharacterRobotReference(
 							captured,
 							characterImageURL[0],
-							useRobotImage,
-							robotImageURL == null ? null : robotImageURL[0]
+							useRobotImage ? ROBOT_TYPE.KINOVA : ROBOT_TYPE.NONE,
+							// robotImageURL == null ? null : robotImageURL[0]
 						)
 						console.log('here')
 						url = imgDetails.imageUrl
