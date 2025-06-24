@@ -97,7 +97,8 @@ export async function generateSceneWithCharacterRobotReference(
 			'\n\n'
 		overall_prompt +=
 			`### Original prompt used to generate the character: ` + charImg.prompt + '\n\n'
-		if (useRobotImage != ROBOT_TYPE.NONE) {
+		let extra_text = ``
+    if (useRobotImage != ROBOT_TYPE.NONE) {
 			const response_robot = await axios.post(
 				endpoint,
 				{
@@ -134,8 +135,10 @@ export async function generateSceneWithCharacterRobotReference(
 				`### Robot Image Description: ` +
 				response_robot.data.choices[0].message.content +
 				'\n\n'
+      extra_text = `Do not alter the fundamental physical characteristics of the Kinova robotic arm.`
 		}
-		let supporting_text = `### Using the information above, generate an image based on the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: `
+		let supporting_text = `### Using the information above, generate an image based on the following description.`
+    supporting_text += ` ` + extra_text + `: `
 		overall_prompt += supporting_text + prompt + '\n\n'
 
 		console.log('Overall prompt:', overall_prompt)
