@@ -48,7 +48,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 		},
 		desktop: {
 			breakpoint: { max: 2000, min: 900 },
-			items: 6,
+			items: 5,
 		},
 		tablet: {
 			breakpoint: { max: 900, min: 768 },
@@ -250,12 +250,12 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 										margin: '10px',
 										border: '1px solid #ccc',
 										borderRadius: '8px',
-										height: '330px',
+										height: '400px',
 									}}
 								>
 									<p>
 										{storyboard.type === 'Moments' ? (
-											<strong>Moment {scene.id}: </strong>
+											<strong>Moment {scene.id}: {scene.title}</strong>
 										) : (
 											<strong>Scene {scene.id}: </strong>
 										)}

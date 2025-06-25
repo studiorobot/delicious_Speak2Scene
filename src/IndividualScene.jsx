@@ -66,7 +66,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 		},
 		desktop: {
 			breakpoint: { max: 2000, min: 900 },
-			items: 6,
+			items: 5,
 		},
 		tablet: {
 			breakpoint: { max: 900, min: 768 },
