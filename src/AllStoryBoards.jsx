@@ -10,7 +10,11 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { parseVoiceCommand } from './voiceParser'
 
 // Firebase imports
-import { fetchCharacter, fetchRobot } from './firebase/firebase_helper_functions'
+import {
+	fetchCharacter,
+	fetchRobot,
+	fetchImagesBySelection,
+} from './firebase/firebase_helper_functions'
 
 // Style imports
 import './App.css'
@@ -26,8 +30,11 @@ const HOT_WORDS = {
 	START: 'start listening',
 	STOP: 'stop listening',
 	CLEAR_TRANSCRIPT: 'clear transcript',
-	CHARACTER: 'character',
+	CHARACTER: 'avatar',
 	ROBOT: 'robot',
+  TRIAL: 'trial',
+  STORYBOARD: 'storyboard',
+  MOMENTS: 'moments',
 	SCROLL_RIGHT: 'scroll right',
 	SCROLL_LEFT: 'scroll left',
 }
@@ -43,6 +50,7 @@ export function AllStoryBoards({ storyboards }) {
 	const [robot, setRobot] = useState(false)
 	const [characterImage, setCharacterImage] = useState(null)
 	const [robotImage, setRobotImage] = useState(null)
+	const [selectedImages, setSelectedImages] = useState({})
 	const participant = useParams().participant
 
 	const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
@@ -117,6 +125,45 @@ export function AllStoryBoards({ storyboards }) {
 			return
 		} else if (
 			status === STATUS.LISTENING &&
+			lower.includes(HOT_WORDS.TRIAL) &&
+			lower.includes(HOT_WORDS.STOP) &&
+			!robot &&
+			!character
+		) {
+			console.log('Robot creation triggered')
+      const selected = storyboards.find((sb) => sb.id === 1)
+			setCurrentStoryboard(selected)
+			setStatus(STATUS.WAITING)
+			resetTranscript()
+			return
+		} else if (
+			status === STATUS.LISTENING &&
+			lower.includes(HOT_WORDS.STORYBOARD) &&
+			lower.includes(HOT_WORDS.STOP) &&
+			!robot &&
+			!character
+		) {
+			console.log('Robot creation triggered')
+			const selected = storyboards.find((sb) => sb.id === 2)
+			setCurrentStoryboard(selected)
+			setStatus(STATUS.WAITING)
+			resetTranscript()
+			return
+		} else if (
+			status === STATUS.LISTENING &&
+			lower.includes(HOT_WORDS.MOMENTS) &&
+			lower.includes(HOT_WORDS.STOP) &&
+			!robot &&
+			!character
+		) {
+			console.log('Robot creation triggered')
+			const selected = storyboards.find((sb) => sb.id === 3)
+			setCurrentStoryboard(selected)
+			setStatus(STATUS.WAITING)
+			resetTranscript()
+			return
+		} else if (
+			status === STATUS.LISTENING &&
 			lower.includes(HOT_WORDS.SCROLL_RIGHT) &&
 			lower.includes(HOT_WORDS.STOP)
 		) {
@@ -156,28 +203,29 @@ export function AllStoryBoards({ storyboards }) {
 		}
 	}, [transcript, currentStoryboard])
 
-	function handleVoiceCommand(command) {
-		const parsed = parseVoiceCommand(command)
-		console.log('Parsed command:', parsed)
-		if (!parsed) return
+  // Function when there are multiple storyboards
+	// function handleVoiceCommand(command) {
+	// 	const parsed = parseVoiceCommand(command)
+	// 	console.log('Parsed command:', parsed)
+	// 	if (!parsed) return
 
-		if (parsed.context === 'storyboard') {
-			const selected = storyboards.find((sb) => sb.id === parseInt(parsed.number))
-			console.log(selected)
-			if (selected) {
-				console.log('Selected storyboard:', selected)
-				setCurrentStoryboard(selected)
-				resetTranscript()
-			}
-		}
-	}
+	// 	if (parsed.context === 'storyboard') {
+	// 		const selected = storyboards.find((sb) => sb.id === parseInt(parsed.number))
+	// 		console.log(selected)
+	// 		if (selected) {
+	// 			console.log('Selected storyboard:', selected)
+	// 			setCurrentStoryboard(selected)
+	// 			resetTranscript()
+	// 		}
+	// 	}
+	// }
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				const charImg = await fetchCharacter(participant)
 				const roboImg = await fetchRobot(participant)
-				console.log('Character image:', charImg)
+				console.log('Avatar image:', charImg)
 				console.log('Robot image:', roboImg)
 				if (charImg.length > 0) {
 					setCharacterImage(charImg[0].downloadURL)
@@ -185,6 +233,20 @@ export function AllStoryBoards({ storyboards }) {
 				if (roboImg.length > 0) {
 					setRobotImage(roboImg[0].downloadURL)
 				}
+				let sbsImages = []
+				for (let i = 0; i < storyboards.length; i++) {
+					let results = await fetchImagesBySelection(participant, storyboards[i].id)
+					const imagesByScene = {}
+					results.forEach((image) => {
+						if (!imagesByScene[image.sceneId]) {
+							imagesByScene[image.sceneId] = []
+						}
+						imagesByScene[image.sceneId].push(image)
+					})
+					sbsImages.push(imagesByScene)
+				}
+				console.log(sbsImages)
+				setSelectedImages(sbsImages)
 			} catch (error) {
 				console.error('Error:', error)
 			}
@@ -260,20 +322,54 @@ export function AllStoryBoards({ storyboards }) {
 												margin: '10px',
 												border: '1px solid #ccc',
 												borderRadius: '8px',
-												height: '150px',
+												height: 'auto',
 											}}
 										>
 											<p>
-												{sb.type === 'Moments' ? (
-													<strong>Storyboard {sb.id} (Moment)</strong>
-												) : (
-													<strong>Storyboard {sb.id}</strong>
-												)}
+												<strong>{sb.type}</strong>
 											</p>
+											<div
+												style={{
+													display: 'grid',
+													gridTemplateColumns: 'repeat(3, 1fr)',
+													gap: '10px',
+												}}
+											>
+												{selectedImages[sb.id - 1] &&
+												Object.keys(selectedImages[sb.id - 1]).length >
+													0 ? (
+													Object.keys(selectedImages[sb.id - 1]).map(
+														(key, index) => {
+															const sceneImages =
+																selectedImages[sb.id - 1][key]
+															return Array.isArray(sceneImages) &&
+																sceneImages[0] ? (
+																<img
+																	key={index}
+																	src={sceneImages[0].downloadURL}
+																	alt={`Scene ${index}`}
+																	style={{
+																		width: '100%', // Will auto-fit column width
+																		height: 'auto',
+																		objectFit: 'cover',
+																	}}
+																/>
+															) : (
+																<p key={index}>
+																	Invalid image at index {key}
+																</p>
+															)
+														}
+													)
+												) : (
+													<p>No images available</p>
+												)}
+											</div>
+
 											<button
 												className="scene-button1"
-												onClick={() =>
-													handleVoiceCommand(`go to storyboard ${sb.id}`)
+												onClick={() => 
+			                    setCurrentStoryboard(storyboards.find((sbb) => sbb.id === sb.id))
 												}
 											>
 												Go
@@ -290,13 +386,13 @@ export function AllStoryBoards({ storyboards }) {
 									margin: '10px',
 									border: '1px solid #ccc',
 									borderRadius: '8px',
-									width: '150px',
+									width: '180px',
 									height: 'auto',
 									display: 'inline-block',
 								}}
 							>
 								<p>
-									<strong>Character</strong>
+									<strong>Avatar</strong>
 								</p>
 								<img src={characterImage} className="scene-image" width="100%" />
 								<button
@@ -312,7 +408,7 @@ export function AllStoryBoards({ storyboards }) {
 									margin: '10px',
 									border: '1px solid #ccc',
 									borderRadius: '8px',
-									width: '150px',
+									width: '180px',
 									height: 'auto',
 									display: 'inline-block',
 								}}

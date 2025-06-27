@@ -9,6 +9,7 @@ import { parseVoiceCommand } from './voiceParser'
 // OpenAI API imports
 import {
 	generateImage,
+	generateCharacterImage,
 	generateRobotWithRobotReference,
 	generateSceneWithCharacterRobotReference,
 } from './api/openai'
@@ -66,7 +67,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 		},
 		desktop: {
 			breakpoint: { max: 2000, min: 900 },
-			items: 5,
+			items: 4,
 		},
 		tablet: {
 			breakpoint: { max: 900, min: 768 },
@@ -188,7 +189,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 					let imgPrompt = captured
 					if (storyboard.id === 0) {
 						// character creation
-						let imgDetails = await generateImage(captured)
+						let imgDetails = await generateCharacterImage(captured)
 						url = imgDetails.imageUrl
 						imgPrompt = imgDetails.prompt
 					} else if (storyboard.id === 0.1) {
@@ -203,11 +204,11 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						if (useRobotImage) {
 							robotImageURL = await fetchRobot(participant)
 						}
-						console.log('characterImageURL', characterImageURL[0].downloadURL)
+						console.log('avatarImageURL', characterImageURL[0].downloadURL)
 						let imgDetails = await generateSceneWithCharacterRobotReference(
 							captured,
 							characterImageURL[0],
-							useRobotImage ? ROBOT_TYPE.KINOVA : ROBOT_TYPE.NONE,
+							useRobotImage ? ROBOT_TYPE.KINOVA : ROBOT_TYPE.NONE
 							// robotImageURL == null ? null : robotImageURL[0]
 						)
 						console.log('here')
@@ -237,6 +238,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							storyboardId,
 							sceneId,
 							imgPrompt,
+							captured,
 							true
 						)
 						fetchAllImages()
@@ -281,6 +283,23 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							onClick={onBack}
 							icon={faCircleLeft}
 						/>
+						{storyboard.id === 0 ? (
+							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
+								Create your Avatar
+							</h4>
+						) : storyboard.id === 0.1 ? (
+							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
+								Create your Robot
+							</h4>
+						) : storyboard.type === 'Moments' ? (
+							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
+								Moment: {scene.title}
+							</h4>
+						) : (
+							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
+								Scene {scene.id}: {scene.title}
+							</h4>
+						)}
 						<p className="participant">
 							<strong>Participant:</strong> {participant}
 						</p>
@@ -294,21 +313,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							<strong>Status:</strong> {status}
 						</p>
 					</div>
-					{storyboard.id === 0 ? (
-						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-							Create your character
-						</h4>
-					) : storyboard.id === 0.1 ? (
-						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>Create your Robot</h4>
-					) : storyboard.type === 'Moments' ? (
-						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-							Moment: {scene.title}
-						</h4>
-					) : (
-						<h4 style={{ marginTop: '0px', marginBottom: '0px' }}>
-							Scene {scene.id}: {scene.title}
-						</h4>
-					)}
+
 					{status === STATUS.LISTENING ? (
 						<>
 							<p>
@@ -322,28 +327,37 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						''
 					)}
 					{!imageUrl && loadingImg && (
-						<div
-							style={{
-								display: 'inline-block',
-								width: '150px',
-								height: '150px',
-								border: '1px solid black',
-								borderRadius: '6px',
-								textAlign: 'center',
-							}}
-						>
-							<p>{STATUS.GENERATING_IMAGE}</p>
-							<Box
-								sx={{
-									display: 'flex',
-									justifyContent: 'center',
-									alignItems: 'center',
+						<div>
+							<div
+								style={{
+									display: 'inline-block',
+									width: '150px',
+									height: '150px',
+									border: '1px solid black',
+									borderRadius: '6px',
+									textAlign: 'center',
 								}}
+								className="leftInProgress"
 							>
-								{loadingImg && progress < 100 && (
-									<CircularProgress variant="determinate" value={progress} />
-								)}
-							</Box>
+								<p>{STATUS.GENERATING_IMAGE}</p>
+								<Box
+									sx={{
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+									}}
+								>
+									{loadingImg && progress < 100 && (
+										<CircularProgress variant="determinate" value={progress} />
+									)}
+								</Box>
+							</div>
+							<div className="rightInProgress">
+								<p>
+									<u>Captured prompt: </u>
+									{captured}
+								</p>
+							</div>
 						</div>
 					)}
 					{imageUrl && (
@@ -353,7 +367,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 								src={imageUrl}
 								alt="Generated from voice prompt"
 								style={{
-									width: '150px',
+									width: '100px',
 									height: 'auto',
 									objectFit: 'cover',
 									borderRadius: '12px',
@@ -463,6 +477,11 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 										Selected
 									</div>
 								)}
+								<p>
+									{img.prompt && img.prompt.length > 100
+										? img.prompt.substring(0, 100) + '...'
+										: img.prompt}
+								</p>
 							</div>
 						</div>
 					))}

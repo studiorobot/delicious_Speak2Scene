@@ -48,7 +48,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 		},
 		desktop: {
 			breakpoint: { max: 2000, min: 900 },
-			items: 5,
+			items: 4,
 		},
 		tablet: {
 			breakpoint: { max: 900, min: 768 },
@@ -162,7 +162,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 		if (!parsed) return
 
 		if (
-			(storyboard.type === 'Storyboard' && parsed.context === 'scene') ||
+			((storyboard.type === 'Storyboard' || storyboard.type === 'Trial') && parsed.context === 'scene') ||
 			(storyboard.type === 'Moments' && parsed.context === 'moment')
 		) {
 			const selected = storyboard.scenes.find((s) => s.id === parseInt(parsed.number))
@@ -193,6 +193,9 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 									onClick={onBack}
 									icon={faCircleLeft}
 								/>
+								<h4 className="pagename" style={{ border: '5px dashed #dc267f' }}>
+									<u>{storyboard.type}:</u> {storyboard.title}
+								</h4>
 								<p className="participant">
 									<strong>Participant:</strong> {participant}
 								</p>
@@ -207,9 +210,6 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 									<strong>Status:</strong> {status}
 								</p>
 							</div>
-							<h4>
-								<u>{storyboard.type}:</u> {storyboard.title}
-							</h4>
 							{status === STATUS.LISTENING ? (
 								<>
 									<p>
@@ -250,14 +250,18 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 										margin: '10px',
 										border: '1px solid #ccc',
 										borderRadius: '8px',
-										height: '400px',
+										height: 'auto',
 									}}
 								>
 									<p>
 										{storyboard.type === 'Moments' ? (
-											<strong>Moment {scene.id}: {scene.title}</strong>
+											<strong>
+												Moment {scene.id}: {scene.title}
+											</strong>
 										) : (
-											<strong>Scene {scene.id}: </strong>
+											<strong>
+												Scene {scene.id}: {scene.title}
+											</strong>
 										)}
 									</p>
 
@@ -268,6 +272,14 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 												alt={`Scene ${scene.id}`}
 												className="scene-image"
 											/>
+											<p>
+												{selectedImages[scene.id][0].prompt.length > 100
+													? selectedImages[scene.id][0].prompt.substring(
+															0,
+															100
+														) + '...'
+													: selectedImages[scene.id][0].prompt}
+											</p>
 										</div>
 									)}
 

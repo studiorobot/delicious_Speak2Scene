@@ -7,6 +7,7 @@ export async function uploadImageAndSaveMetadata(
 	participantId,
 	storyboardId,
 	sceneId,
+	fullPrompt,
 	prompt,
 	selected = false
 ) {
@@ -42,6 +43,7 @@ export async function uploadImageAndSaveMetadata(
 			sceneId,
 			downloadURL,
 			selected,
+			fullPrompt,
 			prompt,
 			createdAt: new Date(),
 		})

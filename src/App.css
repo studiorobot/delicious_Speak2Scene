@@ -68,7 +68,8 @@ h1 {
 
 .participant,
 .status,
-.voice {
+.voice,
+.pagename {
   padding: 0 12px;
   /* Horizontal padding only */
   margin: 5px;
@@ -85,7 +86,6 @@ h1 {
   white-space: nowrap;
   /* Prevent line breaks */
 }
-
 
 .go-back-button {
   display: flex;
@@ -120,6 +120,17 @@ h1 {
   width: 35%;
   /* background-color: #C6E2FF; */
   /* border-radius: 10px; */
+}
+
+.leftInProgress {
+  display: inline-block;
+  width: 30%;
+}
+
+.rightInProgress {
+  display: inline-block;
+  width: 70%;
+  margin-left: 20px;
 }
 
 .leftIS {

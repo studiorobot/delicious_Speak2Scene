@@ -1,19 +1,17 @@
 export const allStoryboards = [
 	{
 		id: 1,
-		type: 'Storyboard',
-		title: 'Trial: With others at Bakery',
+		type: 'Trial',
+		title: 'Trial',
 		robot: false,
 		scenes: [
-			{ id: 1, title: 'Scene Setting' },
-			{ id: 2, title: 'Seating + Ordering' },
-			{ id: 3, title: 'Eating + Drinking' },
+			{ id: 1, title: 'Describe your experience' },
 		],
 	},
 	{
 		id: 2,
 		type: 'Storyboard',
-		title: 'Family-style restaurant',
+		title: 'Social dining at a restaurant',
 		robot: true,
 		scenes: [
 			{ id: 1, title: 'Greeting' },
@@ -37,7 +35,7 @@ export const allStoryboards = [
 			{ id: 5, title: 'Serving food to yourself' },
 			{ id: 6, title: 'Communication to/from robot' },
 			{ id: 7, title: 'Passing Objects' },
-      { id: 8, title: 'Gestures of Care' },
+			{ id: 8, title: 'Gestures of Care' },
 			{ id: 9, title: 'Sharing food' },
 			{ id: 10, title: 'Optional' },
 			{ id: 11, title: 'Optional' },

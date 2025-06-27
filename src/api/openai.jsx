@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { ROBOT_TYPE } from '../constants'
 
+const PROMPT_TO_GENERATE_CHARACTER = `Generate a photorealistic image based on the following description.`
+const PROMPT_TO_GENERATE_CHARACTER_WITHOUT_PHOTOREALISM = `Use sketchy, brush-based illustration techniques, like a concept to generate an avatar or character for the following prompt:`
 const PROMPT_TO_CONVERT_CHARACTER_TO_TEXT = `Based on the provided image, generate a detailed and objective description of the character. Include physical attributes, clothing and appearance, any assistive or mobility features the character may use, and notable facial expressions or body language that might hint at their personality or emotional state. Do not attempt to identify or name the character—focus solely on descriptive analysis.`
 const DESCRIPTION_OF_KINOVA = `The robot is a Kinova robotic arm that is lightweight, assistive manipulator designed for close human interaction. It features six or seven degrees of freedom with smooth and articulated joints, allowing for versatile object manipulation. Commonly used in assistive technology, it can be mounted on wide variety of platforms (e.g., wheelchair, table, tripod stand, etc.) to help users with tasks like eating, grabbing objects, or performing personal care. Its safe, low-force design and compatibility with various control interfaces (e.g., joystick, sip-and-puff, or voice commands) make it ideal for individuals with limited mobility.`
 const PROMPT_TO_CONVERT_ROBOT_TO_TEXT = `Based on the provided robot image, provide a brief description of the emobodiment of the robot. Capture all the details such that I can replicate the image without ever looking at the image.`
@@ -39,10 +41,72 @@ export async function generateImage(prompt) {
 	}
 }
 
+// Provided a prompt, this function generates an image of the character (ensures that the image generated is not photoralistic)
+export async function generateCharacterImage(prompt) {
+	const endpoint = 'https://api.openai.com/v1/chat/completions'
+	const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
+
+	let overall_prompt = PROMPT_TO_GENERATE_CHARACTER + '\n\n'
+	overall_prompt += `### Character Description: ` + prompt + '\n\n'
+	let imgDetails = await generateImage(overall_prompt)
+	console.log(imgDetails.imageUrl)
+	try {
+		const response_character = await axios.post(
+			endpoint,
+			{
+				model: 'gpt-4o',
+				messages: [
+					{
+						role: 'user',
+						content: [
+							{
+								type: 'text',
+								text: PROMPT_TO_CONVERT_CHARACTER_TO_TEXT,
+							},
+							{
+								type: 'image_url',
+								image_url: {
+									url: imgDetails.imageUrl,
+								},
+							},
+						],
+					},
+				],
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${apiKey}`,
+					'Content-Type': 'application/json',
+				},
+			}
+		)
+
+		console.log(response_character.data.choices[0].message.content)
+
+		let overall_prompt_avatar =
+			`### Character Description (as provided by user): ` + prompt + `\n\n`
+		overall_prompt_avatar +=
+			`### Character Image Description: ` +
+			response_character.data.choices[0].message.content +
+			`\n\n`
+		overall_prompt_avatar += PROMPT_TO_GENERATE_CHARACTER_WITHOUT_PHOTOREALISM
+		return await generateImage(overall_prompt_avatar)
+	} catch (error) {
+		console.error(
+			'Image generation with reference failed:',
+			error?.response?.data || error.message
+		)
+		return null
+	}
+}
+
 // Provided a prompt, this function generates an image of the robot using description of the robot
 export async function generateRobotWithRobotReference(prompt) {
 	let overall_prompt = `### Robot description: ` + DESCRIPTION_OF_KINOVA + '\n\n'
-	overall_prompt += `### Generate an image for the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: ` + prompt + '\n\n'
+	overall_prompt +=
+		`### Generate an image for the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: ` +
+		prompt +
+		'\n\n'
 	return await generateImage(overall_prompt)
 }
 
@@ -98,7 +162,7 @@ export async function generateSceneWithCharacterRobotReference(
 		overall_prompt +=
 			`### Original prompt used to generate the character: ` + charImg.prompt + '\n\n'
 		let extra_text = ``
-    if (useRobotImage != ROBOT_TYPE.NONE) {
+		if (useRobotImage != ROBOT_TYPE.NONE) {
 			const response_robot = await axios.post(
 				endpoint,
 				{
@@ -114,7 +178,10 @@ export async function generateSceneWithCharacterRobotReference(
 								{
 									type: 'image_url',
 									image_url: {
-										url: useRobotImage === ROBOT_TYPE.ROBOT_CHARACTER ? robotImg.downloadURL : "https://www.kinovarobotics.com/uploads/_1000x1000_crop_center-center_none/22037/Gen3-robot-img-Cover-img-is-loaded-block-1B.webp",
+										url:
+											useRobotImage === ROBOT_TYPE.ROBOT_CHARACTER
+												? robotImg.downloadURL
+												: 'https://www.kinovarobotics.com/uploads/_1000x1000_crop_center-center_none/22037/Gen3-robot-img-Cover-img-is-loaded-block-1B.webp',
 									},
 								},
 							],
@@ -135,10 +202,10 @@ export async function generateSceneWithCharacterRobotReference(
 				`### Robot Image Description: ` +
 				response_robot.data.choices[0].message.content +
 				'\n\n'
-      extra_text = `Do not alter the fundamental physical characteristics of the Kinova robotic arm.`
+			extra_text = `Do not alter the fundamental physical characteristics of the Kinova robotic arm.`
 		}
-		let supporting_text = `### Using the information above, generate an image based on the following description.`
-    supporting_text += ` ` + extra_text + `: `
+		let supporting_text = `### Using the information above, generate an image based on the following description. Respect the character's description provided.`
+		supporting_text += ` ` + extra_text + `: `
 		overall_prompt += supporting_text + prompt + '\n\n'
 
 		console.log('Overall prompt:', overall_prompt)
