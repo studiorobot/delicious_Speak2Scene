@@ -4,9 +4,7 @@ export const allStoryboards = [
 		type: 'Trial',
 		title: 'Trial',
 		robot: false,
-		scenes: [
-			{ id: 1, title: 'Describe your experience' },
-		],
+		scenes: [{ id: 1, title: 'Describe your experience' }],
 	},
 	{
 		id: 2,

@@ -239,3 +239,23 @@ export async function fetchRobot(participantId) {
 		throw error
 	}
 }
+
+// Fetch all unique participant IDs
+export async function fetchAllParticipants() {
+	try {
+		const snapshot = await getDocs(collection(db, 'participants'))
+
+		const participantIds = new Set()
+		snapshot.forEach((doc) => {
+			const data = doc.data()
+			if (data.participantId) {
+				participantIds.add(data.participantId)
+			}
+		})
+
+		return Array.from(participantIds)
+	} catch (error) {
+		console.error('Error fetching participant IDs:', error)
+		throw error
+	}
+}

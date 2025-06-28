@@ -419,8 +419,6 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 				</div>
 			</div>
 
-			<p style={{ marginTop: '5px' }}>Previously Generated Images</p>
-
 			<div style={{ maxWidth: '90vw', overflow: 'hidden' }}>
 				<Carousel
 					responsive={responsive}

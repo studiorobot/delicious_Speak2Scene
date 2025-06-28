@@ -162,7 +162,8 @@ export function StoryBoard({ participant, storyboard, onBack }) {
 		if (!parsed) return
 
 		if (
-			((storyboard.type === 'Storyboard' || storyboard.type === 'Trial') && parsed.context === 'scene') ||
+			((storyboard.type === 'Storyboard' || storyboard.type === 'Trial') &&
+				parsed.context === 'scene') ||
 			(storyboard.type === 'Moments' && parsed.context === 'moment')
 		) {
 			const selected = storyboard.scenes.find((s) => s.id === parseInt(parsed.number))

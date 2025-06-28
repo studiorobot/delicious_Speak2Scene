@@ -32,9 +32,9 @@ const HOT_WORDS = {
 	CLEAR_TRANSCRIPT: 'clear transcript',
 	CHARACTER: 'avatar',
 	ROBOT: 'robot',
-  TRIAL: 'trial',
-  STORYBOARD: 'storyboard',
-  MOMENTS: 'moments',
+	TRIAL: 'trial',
+	STORYBOARD: 'storyboard',
+	MOMENTS: 'moments',
 	SCROLL_RIGHT: 'scroll right',
 	SCROLL_LEFT: 'scroll left',
 }
@@ -131,7 +131,7 @@ export function AllStoryBoards({ storyboards }) {
 			!character
 		) {
 			console.log('Robot creation triggered')
-      const selected = storyboards.find((sb) => sb.id === 1)
+			const selected = storyboards.find((sb) => sb.id === 1)
 			setCurrentStoryboard(selected)
 			setStatus(STATUS.WAITING)
 			resetTranscript()
@@ -203,7 +203,7 @@ export function AllStoryBoards({ storyboards }) {
 		}
 	}, [transcript, currentStoryboard])
 
-  // Function when there are multiple storyboards
+	// Function when there are multiple storyboards
 	// function handleVoiceCommand(command) {
 	// 	const parsed = parseVoiceCommand(command)
 	// 	console.log('Parsed command:', parsed)
@@ -281,7 +281,7 @@ export function AllStoryBoards({ storyboards }) {
 					</div>
 					<div className="container-lr">
 						<div className="left">
-							<h4>Storyboards</h4>
+							<h4>Main Menu</h4>
 							{status === STATUS.LISTENING ? (
 								<>
 									<p>
@@ -368,8 +368,10 @@ export function AllStoryBoards({ storyboards }) {
 
 											<button
 												className="scene-button1"
-												onClick={() => 
-			                    setCurrentStoryboard(storyboards.find((sbb) => sbb.id === sb.id))
+												onClick={() =>
+													setCurrentStoryboard(
+														storyboards.find((sbb) => sbb.id === sb.id)
+													)
 												}
 											>
 												Go

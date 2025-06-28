@@ -48,7 +48,7 @@ function App() {
 			<Route path="/" element={<WelcomeScreen />} />
 			<Route path="/:participant" element={<AllStoryBoards storyboards={allStoryboards} />} />
 			<Route path="/researcher" element={<Researcher />} />
-			<Route path="/researcher/:participant" element={<ResearcherParticipantView />} />
+			<Route path="/researcher/:participant" element={<ResearcherParticipantView storyboards={allStoryboards}/>} />
 		</Routes>
 	)
 }
