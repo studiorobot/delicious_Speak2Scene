@@ -107,9 +107,9 @@ export function AllStoryBoards({ storyboards }) {
 			!robot
 		) {
 			console.log('Character creation triggered')
-			setCharacter(true)
 			setStatus(STATUS.WAITING)
-			resetTranscript()
+      setCharacter(true)
+      resetTranscript()
 			return
 		} else if (
 			status === STATUS.LISTENING &&
@@ -119,9 +119,9 @@ export function AllStoryBoards({ storyboards }) {
 			!character
 		) {
 			console.log('Robot creation triggered')
-			setRobot(true)
 			setStatus(STATUS.WAITING)
-			resetTranscript()
+      setRobot(true)
+      resetTranscript()
 			return
 		} else if (
 			status === STATUS.LISTENING &&
@@ -132,9 +132,9 @@ export function AllStoryBoards({ storyboards }) {
 		) {
 			console.log('Robot creation triggered')
 			const selected = storyboards.find((sb) => sb.id === 1)
-			setCurrentStoryboard(selected)
 			setStatus(STATUS.WAITING)
-			resetTranscript()
+      setCurrentStoryboard(selected)
+      resetTranscript()
 			return
 		} else if (
 			status === STATUS.LISTENING &&
@@ -145,9 +145,9 @@ export function AllStoryBoards({ storyboards }) {
 		) {
 			console.log('Robot creation triggered')
 			const selected = storyboards.find((sb) => sb.id === 2)
-			setCurrentStoryboard(selected)
 			setStatus(STATUS.WAITING)
-			resetTranscript()
+      setCurrentStoryboard(selected)
+      resetTranscript()
 			return
 		} else if (
 			status === STATUS.LISTENING &&
@@ -158,9 +158,9 @@ export function AllStoryBoards({ storyboards }) {
 		) {
 			console.log('Robot creation triggered')
 			const selected = storyboards.find((sb) => sb.id === 3)
-			setCurrentStoryboard(selected)
 			setStatus(STATUS.WAITING)
-			resetTranscript()
+      setCurrentStoryboard(selected)
+      resetTranscript()
 			return
 		} else if (
 			status === STATUS.LISTENING &&
@@ -186,17 +186,17 @@ export function AllStoryBoards({ storyboards }) {
 			}
 			setStatus(STATUS.WAITING)
 			resetTranscript()
-		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
-			console.log('Stop triggered')
-			let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
-			setCaptured(cleanedTranscript)
-			setStatus(STATUS.WAITING)
-			if (cleanedTranscript && cleanedTranscript.length > 0 && !currentStoryboard) {
-				console.log('Handling voice command:', cleanedTranscript)
-				setStatus(STATUS.WAITING)
-				handleVoiceCommand(cleanedTranscript)
-			}
-			resetTranscript()
+		// } else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
+		// 	console.log('Stop triggered')
+		// 	let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
+		// 	setCaptured(cleanedTranscript)
+		// 	setStatus(STATUS.WAITING)
+		// 	if (cleanedTranscript && cleanedTranscript.length > 0 && !currentStoryboard) {
+		// 		console.log('Handling voice command:', cleanedTranscript)
+		// 		setStatus(STATUS.WAITING)
+		// 		handleVoiceCommand(cleanedTranscript)
+		// 	}
+		// 	resetTranscript()
 		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.CLEAR_TRANSCRIPT)) {
 			console.log('clear triggered')
 			resetTranscript()
@@ -258,6 +258,7 @@ export function AllStoryBoards({ storyboards }) {
 		setCurrentStoryboard(null)
 		setCharacter(false)
 		setRobot(false)
+    setStatus(STATUS.WAITING)
 	}
 
 	return (
@@ -437,14 +438,14 @@ export function AllStoryBoards({ storyboards }) {
 					participant={participant}
 					storyboard={{ id: 0 }}
 					scene={{ id: 0 }}
-					onBack={() => setCharacter(false)}
+					onBack={() => backFunc()}
 				/>
 			) : (
 				<IndividualScene
 					participant={participant}
 					storyboard={{ id: 0.1 }}
 					scene={{ id: 0.1 }}
-					onBack={() => setRobot(false)}
+					onBack={() => backFunc()}
 				/>
 			)}
 		</div>

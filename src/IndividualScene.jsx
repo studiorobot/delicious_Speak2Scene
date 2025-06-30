@@ -113,7 +113,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 			console.log(transcript)
 			resetTranscript()
 			console.log(transcript)
-			// setStatus(STATUS.WAITING);
+			setStatus(STATUS.WAITING);
 			onBack()
 			return
 		} else if (
