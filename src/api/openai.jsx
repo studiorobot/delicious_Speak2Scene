@@ -205,7 +205,7 @@ export async function generateSceneWithCharacterRobotReference(
 			extra_text = `Do not alter the fundamental physical characteristics of the Kinova robotic arm.`
 		}
 		let supporting_text = `### Using the information above, generate an image based on the following description. Respect the character's description provided.`
-		supporting_text += ` ` + extra_text + `: `
+		supporting_text += ` ` + extra_text + ART_STYLE + `: `
 		overall_prompt += supporting_text + prompt + '\n\n'
 
 		console.log('Overall prompt:', overall_prompt)
