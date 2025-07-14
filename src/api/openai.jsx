@@ -181,7 +181,7 @@ export async function generateSceneWithCharacterRobotReference(
 										url:
 											useRobotImage === ROBOT_TYPE.ROBOT_CHARACTER
 												? robotImg.downloadURL
-												: 'https://www.kinovarobotics.com/uploads/_1000x1000_crop_center-center_none/22037/Gen3-robot-img-Cover-img-is-loaded-block-1B.webp',
+												: 'https://firebasestorage.googleapis.com/v0/b/userstudy-app-c80a9.firebasestorage.app/o/userstudy-app-images%2FKinovaGen3Image.jpeg?alt=media&token=1199e08e-b74d-41fd-b11d-e33eb1e92a23',
 									},
 								},
 							],

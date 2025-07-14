@@ -1,4 +1,55 @@
-@media (max-width: 1023px) {
+@media print {
+
+  /* Hide any non-print controls */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Container layout for printing */
+  .print-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  /* Each image card */
+  .print-image-container {
+    border: 1px solid #000 !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Image styling */
+  .print-image-container img {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: cover !important;
+  }
+
+  /* Optional: prevent prompt/details from breaking */
+  .print-image-container details {
+    page-break-inside: avoid;
+  }
+
+  details,
+  h1,
+  h2 {
+    display: none;
+  }
+
+  .page-break {
+    page-break-before: always;
+    /* force a new page before this element */
+    break-before: page;
+    /* newer syntax for better support */
+  }
+}
+
+
+
+/* @media (max-width: 1023px) {
   #root::before {
     content: "Please use a larger screen to access this application.";
     display: block;
@@ -11,7 +62,7 @@
   #root {
     display: none;
   }
-}
+} */
 
 #root {
   display: block;

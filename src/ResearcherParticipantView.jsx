@@ -45,7 +45,8 @@ export function ResearcherParticipantView({storyboards}) {
 			<h3>Avatar</h3>
 			{avatarData && avatarData.length > 0 ? (
 				<div
-					style={{
+				className='print-grid'	
+        style={{
 						display: 'grid',
 						gridTemplateColumns: 'repeat(4, 1fr)',
 						gap: '10px',
@@ -60,6 +61,7 @@ export function ResearcherParticipantView({storyboards}) {
                 borderRadius: '8px',
                 height: 'auto',
               }}
+              className="print-image-container"
             >
               <p>
                 <strong>Avatar</strong>
@@ -90,6 +92,7 @@ export function ResearcherParticipantView({storyboards}) {
 						gridTemplateColumns: 'repeat(4, 1fr)',
 						gap: '10px',
 					}}
+          className="print-grid"
 				>
 					{trialData.map((img, index) => (
             <div
@@ -100,6 +103,7 @@ export function ResearcherParticipantView({storyboards}) {
                 borderRadius: '8px',
                 height: 'auto',
               }}
+              className="print-image-container"
             >
               <p>
                 <strong>Trial</strong>
@@ -122,7 +126,7 @@ export function ResearcherParticipantView({storyboards}) {
 				<p>No Trial data available</p>
 			)}
 
-			<h3>Storyboard</h3>
+			<h3 className='page-break'>Storyboard</h3>
       {storyboardData && storyboardData.length > 0 ? (
 				<div
 					style={{
@@ -130,6 +134,7 @@ export function ResearcherParticipantView({storyboards}) {
 						gridTemplateColumns: 'repeat(4, 1fr)',
 						gap: '10px',
 					}}
+          className='print-grid'
 				>
 					{storyboardData.map((img, index) => (
             <div
@@ -140,6 +145,7 @@ export function ResearcherParticipantView({storyboards}) {
                 borderRadius: '8px',
                 height: 'auto',
               }}
+              className="print-image-container"
             >
               <p>
                 <strong>Scene {index + 1}: {storyboards[1].scenes[index].title}</strong>
@@ -162,7 +168,7 @@ export function ResearcherParticipantView({storyboards}) {
 				<p>No Storyboard data available</p>
 			)}
 
-			<h3>Moments</h3>
+			<h3 className='page-break'>Moments</h3>
       {momentsData && momentsData.length > 0 ? (
 				<div
 					style={{
@@ -170,6 +176,7 @@ export function ResearcherParticipantView({storyboards}) {
 						gridTemplateColumns: 'repeat(4, 1fr)',
 						gap: '10px',
 					}}
+          className='print-grid'
 				>
 					{momentsData.map((img, index) => (
             <div
@@ -180,6 +187,7 @@ export function ResearcherParticipantView({storyboards}) {
                 borderRadius: '8px',
                 height: 'auto',
               }}
+              className="print-image-container"
             >
               <p>
                 <strong>Moment: {storyboards[2].scenes[index].title}</strong>
@@ -202,7 +210,7 @@ export function ResearcherParticipantView({storyboards}) {
 				<p>No Moments data available</p>
 			)}
 
-			<h3>Robot</h3>
+			<h3 className='page-break'>Robot</h3>
       {robotData && robotData.length > 0 ? (
 				<div
 					style={{
@@ -210,6 +218,7 @@ export function ResearcherParticipantView({storyboards}) {
 						gridTemplateColumns: 'repeat(4, 1fr)',
 						gap: '10px',
 					}}
+          className='print-grid'
 				>
 					{robotData.map((img, index) => (
             <div
@@ -220,6 +229,7 @@ export function ResearcherParticipantView({storyboards}) {
                 borderRadius: '8px',
                 height: 'auto',
               }}
+              className="print-image-container"
             >
               <p>
                 <strong>Robot</strong>
