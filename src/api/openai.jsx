@@ -11,230 +11,217 @@ const ART_STYLE = `### Avoid photorealism. Use sketchy, brush-based illustration
 // Provided a prompt, this function generates an image using OpenAI's gpt-image-1 model
 // model info: https://platform.openai.com/docs/models/gpt-image-1
 export async function generateImage(prompt) {
-	const endpoint = 'https://api.openai.com/v1/images/generations'
-	const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
+  const endpoint = 'https://api.openai.com/v1/images/generations'
+  const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
 
-	try {
-		const response = await axios.post(
-			endpoint,
-			{
-				model: 'gpt-image-1',
-				prompt: prompt,
-				n: 1, // generate 1 image
-				size: '1024x1024', // can also use 256x256 or 1024x1024
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${apiKey}`,
-					'Content-Type': 'application/json',
-				},
-			}
-		)
+  try {
+    const response = await axios.post(
+      endpoint,
+      {
+        model: 'gpt-image-1',
+        prompt: prompt,
+        n: 1,
+        size: '1024x1024', // can also use 256x256 or 1024x1024
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
 
-		const imageUrl = `data:image/png;base64,${response.data.data[0].b64_json}`
-		console.log(response.data)
-		let overall_prompt = ART_STYLE + '\n\n' + prompt
-		return { imageUrl: imageUrl, prompt: overall_prompt }
-	} catch (error) {
-		console.error('Image generation failed:', error?.response?.data || error.message)
-		return null
-	}
+    const imageUrl = `data:image/png;base64,${response.data.data[0].b64_json}`
+    console.log(response.data)
+    let overall_prompt = ART_STYLE + '\n\n' + prompt
+    return { imageUrl: imageUrl, prompt: overall_prompt }
+  } catch (error) {
+    console.error('Image generation failed:', error?.response?.data || error.message)
+    return null
+  }
 }
 
 // Provided a prompt, this function generates an image of the character (ensures that the image generated is not photoralistic)
 export async function generateCharacterImage(prompt) {
-	const endpoint = 'https://api.openai.com/v1/chat/completions'
-	const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
+  const endpoint = 'https://api.openai.com/v1/chat/completions'
+  const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
 
-	let overall_prompt = PROMPT_TO_GENERATE_CHARACTER + '\n\n'
-	overall_prompt += `### Character Description: ` + prompt + '\n\n'
-	let imgDetails = await generateImage(overall_prompt)
-	console.log(imgDetails.imageUrl)
-	try {
-		const response_character = await axios.post(
-			endpoint,
-			{
-				model: 'gpt-4o',
-				messages: [
-					{
-						role: 'user',
-						content: [
-							{
-								type: 'text',
-								text: PROMPT_TO_CONVERT_CHARACTER_TO_TEXT,
-							},
-							{
-								type: 'image_url',
-								image_url: {
-									url: imgDetails.imageUrl,
-								},
-							},
-						],
-					},
-				],
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${apiKey}`,
-					'Content-Type': 'application/json',
-				},
-			}
-		)
+  // generate initial character image
+  let overall_prompt = PROMPT_TO_GENERATE_CHARACTER + '\n\n'
+  overall_prompt += `### Character Description: ` + prompt + '\n\n'
+  let imgDetails = await generateImage(overall_prompt)
+  console.log(imgDetails.imageUrl)
+  try {
+    const response_character = await axios.post(
+      endpoint,
+      {
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: PROMPT_TO_CONVERT_CHARACTER_TO_TEXT,
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imgDetails.imageUrl,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
 
-		console.log(response_character.data.choices[0].message.content)
+    let result_char = response_character.data.choices[0].message.content
 
-		let overall_prompt_avatar =
-			`### Character Description (as provided by user): ` + prompt + `\n\n`
-		overall_prompt_avatar +=
-			`### Character Image Description: ` +
-			response_character.data.choices[0].message.content +
-			`\n\n`
-		overall_prompt_avatar += PROMPT_TO_GENERATE_CHARACTER_WITHOUT_PHOTOREALISM
-		return await generateImage(overall_prompt_avatar)
-	} catch (error) {
-		console.error(
-			'Image generation with reference failed:',
-			error?.response?.data || error.message
-		)
-		return null
-	}
+    // regenerate character image to ensure it is not photorealistic
+    let overall_prompt_avatar =
+      `### Character Description (as provided by user): ` + prompt + `\n\n`
+    overall_prompt_avatar +=
+      `### Character Image Description: ` +
+      result_char +
+      `\n\n`
+    overall_prompt_avatar += PROMPT_TO_GENERATE_CHARACTER_WITHOUT_PHOTOREALISM
+    let char_img = await generateImage(overall_prompt_avatar)
+    return { imageUrl: char_img.imageUrl, prompt: overall_prompt_avatar, char_description: result_char }
+  } catch (error) {
+    console.error(
+      'Image generation with reference failed:',
+      error?.response?.data || error.message
+    )
+    return null
+  }
 }
 
 // Provided a prompt, this function generates an image of the robot using description of the robot
 export async function generateRobotWithRobotReference(prompt) {
-	let overall_prompt = `### Robot description: ` + DESCRIPTION_OF_KINOVA + '\n\n'
-	overall_prompt +=
-		`### Generate an image for the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: ` +
-		prompt +
-		'\n\n'
-	return await generateImage(overall_prompt)
+  let overall_prompt = `### Robot description: ` + DESCRIPTION_OF_KINOVA + '\n\n'
+  overall_prompt +=
+    `### Generate an image for the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: ` +
+    prompt +
+    '\n\n'
+  return await generateImage(overall_prompt)
 }
 
 // Provided a prompt, an image of the character, and an optional flag to use robot description, this function generates an image for the prompt
 // First, converts the character image to a text description using OpenAI's gpt-4o model (https://platform.openai.com/docs/models/gpt-4o)
-// Then, combines the character description + robot description (if applicable) with the prompt to generate the final image using OpenAI's gpt-image-1 model (https://platform.openai.com/docs/models/gpt-image-1)
-export async function generateSceneWithCharacterRobotReference(
-	prompt,
-	charImg,
-	useRobotImage = ROBOT_TYPE.NONE,
-	robotImg = null
+export async function generateSceneWithCharacterReference(
+  prompt,
+  charImgs,
 ) {
-	const endpoint = 'https://api.openai.com/v1/chat/completions'
-	const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
+  const endpoint = 'https://api.openai.com/v1/chat/completions'
+  const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
 
-	try {
-		const response_character = await axios.post(
-			endpoint,
-			{
-				model: 'gpt-4o',
-				messages: [
-					{
-						role: 'user',
-						content: [
-							{
-								type: 'text',
-								text: PROMPT_TO_CONVERT_CHARACTER_TO_TEXT,
-							},
-							{
-								type: 'image_url',
-								image_url: {
-									url: charImg.downloadURL,
-								},
-							},
-						],
-					},
-				],
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${apiKey}`,
-					'Content-Type': 'application/json',
-				},
-			}
-		)
+  try {
+    // for (let i = 0; i < charImgs.length; i++) {
+    //   let charImg = charImgs[i]
+    //   const response_character = await axios.post(
+    //     endpoint,
+    //     {
+    //       model: 'gpt-4o',
+    //       messages: [
+    //         {
+    //           role: 'user',
+    //           content: [
+    //             {
+    //               type: 'text',
+    //               text: PROMPT_TO_CONVERT_CHARACTER_TO_TEXT,
+    //             },
+    //             {
+    //               type: 'image_url',
+    //               image_url: {
+    //                 url: charImg.downloadURL,
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${apiKey}`,
+    //         'Content-Type': 'application/json',
+    //       },
+    //     }
+    //   )
+    //   charImgs[i].description = response_character.data.choices[0].message.content
+    // }
 
-		console.log(response_character.data.choices[0].message.content)
+    console.log(charImgs)
 
-		let overall_prompt =
-			`### Character Description: ` +
-			response_character.data.choices[0].message.content +
-			'\n\n'
-		overall_prompt +=
-			`### Original prompt used to generate the character: ` + charImg.prompt + '\n\n'
-		let extra_text = ``
-		if (useRobotImage != ROBOT_TYPE.NONE) {
-			const response_robot = await axios.post(
-				endpoint,
-				{
-					model: 'gpt-4o',
-					messages: [
-						{
-							role: 'user',
-							content: [
-								{
-									type: 'text',
-									text: PROMPT_TO_CONVERT_ROBOT_TO_TEXT,
-								},
-								{
-									type: 'image_url',
-									image_url: {
-										url:
-											useRobotImage === ROBOT_TYPE.ROBOT_CHARACTER
-												? robotImg.downloadURL
-												: 'https://firebasestorage.googleapis.com/v0/b/userstudy-app-c80a9.firebasestorage.app/o/userstudy-app-images%2FKinovaGen3Image.jpeg?alt=media&token=1199e08e-b74d-41fd-b11d-e33eb1e92a23',
-									},
-								},
-							],
-						},
-					],
-				},
-				{
-					headers: {
-						Authorization: `Bearer ${apiKey}`,
-						'Content-Type': 'application/json',
-					},
-				}
-			)
+    let overall_prompt = `# Character Descriptions: \n`
+    charImgs.forEach((charImg, index) => {
+      overall_prompt += `## Character ${index + 1}: \n\n## Self description: ${charImg.prompt} \n\n## Character image description: ${charImg.charDescription}\n\n`
+    })
 
-			console.log(response_robot.data.choices[0].message.content)
-			overall_prompt += `### Robot's Physical Description: ` + DESCRIPTION_OF_KINOVA + '\n\n'
-			overall_prompt +=
-				`### Robot Image Description: ` +
-				response_robot.data.choices[0].message.content +
-				'\n\n'
-			extra_text = `Do not alter the fundamental physical characteristics of the Kinova robotic arm.`
-		}
-		let supporting_text = `### Using the information above, generate an image based on the following description. Respect the character's description provided.`
-		supporting_text += ` ` + extra_text + ART_STYLE + `: `
-		overall_prompt += supporting_text + prompt + '\n\n'
+    let supporting_text = `### Using the character information above, generate an image based on the following description. Respect the character's description provided. \n\n${ART_STYLE}\n\n`
+    overall_prompt += supporting_text + prompt + '\n\n'
 
-		console.log('Overall prompt:', overall_prompt)
+    console.log('Overall prompt:', overall_prompt)
 
-		return await generateImage(overall_prompt)
-	} catch (error) {
-		console.error(
-			'Image generation with reference failed:',
-			error?.response?.data || error.message
-		)
-		return null
-	}
+    return await generateImage(overall_prompt)
+  } catch (error) {
+    console.error(
+      'Image generation with reference failed:',
+      error?.response?.data || error.message
+    )
+    return null
+  }
 }
-/**
- * ### Avoid photorealism. Use sketchy, brush-based illustration techniques, like a concept to generate an image for the following prompt:
 
-### Character Description: The character is a young individual with a short, neatly-groomed hairstyle. They are sitting in a motorized wheelchair, equipped with a headrest and joystick controls, which suggests they use it for mobility assistance. The joystick is equipped with a flexible tube controller positioned near the person's mouth, indicating it may be used for hands-free operation.
+// Given an image of the character, generates a description
+export async function generateCharDescription(charImg) {
+  const endpoint = 'https://api.openai.com/v1/chat/completions'
+  const apiKey = import.meta.env.VITE_OPEN_AI_API_KEY
 
-They are wearing a simple, casual gray t-shirt and blue jeans, presenting a comfortable and relaxed appearance. The person’s expression is neutral and focused, with their gaze directed forward, suggesting attentiveness or contemplation. The posture is upright, and both arms rest naturally on the armrests, indicating a calm and composed demeanor. The overall impression is one of practicality and self-sufficiency, reflecting adaptability in using assistive technology for mobility.
-
-### Original prompt used to generate the character: I would like to create a character based on my life I need is atharva 22-year-old male of Indian descent I'm wearing gray T-shirt with blue jeans black hair brown skin I also use a wheelchair to move around I use it electronic wheelchair and I control the wheelchair using Sip and puff method since I'm unable to use my hands
-
-Use art style: sketch with watercolors
-
-### Robot's Physical Description: The robot is a Kinova robotic arm that is lightweight, assistive manipulator designed for close human interaction. It features six or seven degrees of freedom with smooth and articulated joints, allowing for versatile object manipulation. Commonly used in assistive technology, it can be mounted on wide variety of platforms (e.g., wheelchair, table, tripod stand, etc.) to help users with tasks like eating, grabbing objects, or performing personal care. Its safe, low-force design and compatibility with various control interfaces (e.g., joystick, sip-and-puff, or voice commands) make it ideal for individuals with limited mobility.
-
-### Robot's Character Description: The robot is composed of a sleek, segmented arm with a white, glossy surface. It has multiple cylindrical joints that allow for flexible movement. At the top section of the arm, which appears to be in an angled position, the word "KINOVA" is printed in a bold blue font. The arm culminates in a sophisticated, black end effector or gripper with two main fingers designed for precision gripping. The overall design suggests a blend of functionality and modern aesthetics, suitable for tasks requiring dexterous manipulation.
-
-### Using the information above, generate an image based on the following description. Do not alter the fundamental physical characteristics of the Kinova robotic arm: generate the robot welcoming into the restaurant
-
-
- */
+  try {
+    const response_character = await axios.post(
+      endpoint,
+      {
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: PROMPT_TO_CONVERT_CHARACTER_TO_TEXT,
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: charImg.downloadURL,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    let result = response_character.data.choices[0].message.content
+    console.log(result)
+    return result
+  } catch (error) {
+    console.error(
+      'Image generation with reference failed:',
+      error?.response?.data || error.message
+    )
+    return null
+  }
+}

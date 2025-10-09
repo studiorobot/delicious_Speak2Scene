@@ -194,6 +194,12 @@ export function StoryBoard({ participant, storyboard, onBack }) {
     return <div>Storyboard not found!</div>
   }
 
+  function backFunc() {
+    setCurrCharacter(0)
+    setCurrentScene(null)
+    setStatus(STATUS.WAITING)
+  }
+
   return (
     <div>
       {!currentScene && currCharacter == 0 ? (

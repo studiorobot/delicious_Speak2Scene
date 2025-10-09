@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 
-import { ROBOT_TYPE } from './constants'
 // Speech recognition imports
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { parseVoiceCommand } from './voiceParser'
 
 // OpenAI API imports
 import {
-  generateImage,
   generateCharacterImage,
-  generateRobotWithRobotReference,
-  generateSceneWithCharacterRobotReference,
 } from './api/openai'
 
 // Firebase imports
 import {
-  uploadImageAndSaveMetadata,
-  setSelectedImage,
+  setSelectedCharImage,
   setAllImagesUnselected,
-  fetchCharacter,
-  fetchRobot,
-  fetchImages,
+  uploadCharAndSaveMetadata,
+  fetchAllCharImages,
 } from './firebase/firebase_helper_functions'
 
 // Style imports
@@ -79,6 +73,7 @@ export function Character({ participant, storyboard, character, onBack }) {
     },
   }
 
+  // Check for browser support for speech recognition and start listening
   useEffect(() => {
     if (!browserSupportsSpeechRecognition) {
       alert('Your browser does not support speech recognition')
@@ -148,10 +143,10 @@ export function Character({ participant, storyboard, character, onBack }) {
       console.log('Parsed command:', parsed)
       const updateImageAndRefresh = async () => {
         if (parsed && parsed.context === HOT_WORDS.CHANGE_IMAGE) {
-          await setSelectedImage(
+          await setSelectedCharImage(
             participant,
             storyboard.id,
-            scene.id,
+            character.id,
             parseInt(parsed.number)
           )
           await fetchAllImages()
@@ -185,11 +180,10 @@ export function Character({ participant, storyboard, character, onBack }) {
             })
           }, 500)
           console.log('Generating image for:', captured)
-          let url = null
-          let imgPrompt = captured
           let imgDetails = await generateCharacterImage(captured)
-          url = imgDetails.imageUrl
-          imgPrompt = imgDetails.prompt
+          let url = imgDetails.imageUrl
+          let imgPrompt = imgDetails.prompt
+          let char_desc = imgDetails.char_description
           if (url) {
             setImageUrl(url)
 
@@ -204,16 +198,18 @@ export function Character({ participant, storyboard, character, onBack }) {
             const participantId = participant
             const storyboardId = storyboard.id
             const characterId = character.id
+            console.log(characterId)
             // make sure to set all other images as unselected
             await setAllImagesUnselected(participantId, storyboardId, characterId)
             // set the current image generated as selected
-            await uploadImageAndSaveMetadata(
+            await uploadCharAndSaveMetadata(
               file,
               participantId,
               storyboardId,
               characterId,
               imgPrompt,
               captured,
+              char_desc,
               true
             )
             fetchAllImages()
@@ -237,9 +233,12 @@ export function Character({ participant, storyboard, character, onBack }) {
     }
   }, [status])
 
+  useEffect(() => {
+    fetchAllImages()
+  }, [storyboard, character])
+
   const fetchAllImages = async () => {
-    console.log(storyboard.id, scene.id)
-    let results = await fetchImages(participant, storyboard.id, scene.id)
+    let results = await fetchAllCharImages(participant, storyboard.id, character.id)
     setImages(results)
     console.log('Fetched images:', results)
   }
@@ -349,7 +348,7 @@ export function Character({ participant, storyboard, character, onBack }) {
           </p>
           <ul className="box">
             <li>
-              <i>[describe scene] to generate image</i>
+              <i>[describe character] to generate image</i>
             </li>
             <li>
               <i>

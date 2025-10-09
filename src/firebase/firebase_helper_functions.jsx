@@ -2,62 +2,8 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage, db } from './firebase'
 import { collection, addDoc, setDoc, query, where, getDocs, updateDoc, doc } from 'firebase/firestore'
 
-// Upload a Character Image and save its metadata
-export async function uploadCharacterAndSaveMetadata(
-  file,
-  participantId,
-  storyboardId,
-  characterId,
-  fullPrompt,
-  prompt,
-  selected = false
-) {
-  try {
-    // Get all existing images for the given participant, storyboard, and scene
-    const imagesRef = collection(db, participantId)
-    const q = query(
-      imagesRef,
-      where('participantId', '==', participantId),
-      where('storyboardId', '==', storyboardId),
-      where('characterId', '==', characterId)
-    )
-    const snapshot = await getDocs(q)
-
-    // Determine max imageId and increment
-    const existingImageIds = snapshot.docs.map((doc) => doc.data().imageId || 0)
-    const nextImageId = (existingImageIds.length > 0 ? Math.max(...existingImageIds) : 0) + 1
-
-    const filePath = `userstudy-app-images/${participantId}/${storyboardId}/${sceneId}_${Date.now()}_${file.name}`
-    const storageRef = ref(storage, filePath)
-
-    // Upload image to Cloud Storage
-    await uploadBytes(storageRef, file)
-
-    // Get download URL
-    const downloadURL = await getDownloadURL(storageRef)
-
-    // Save to Firestore
-    const docRef = await addDoc(collection(db, 'participants'), {
-      imageId: nextImageId,
-      participantId,
-      storyboardId,
-      sceneId,
-      downloadURL,
-      selected,
-      fullPrompt,
-      prompt,
-      createdAt: new Date(),
-    })
-
-    console.log('Document written with ID: ', docRef.id)
-    return downloadURL
-  } catch (error) {
-    console.error('Error uploading image: ', error)
-    throw error
-  }
-}
-
 // Update Storyboard with the number of characters
+// Oct 9
 export async function createEmptyCharacter(participantId, storyboardId, characterId) {
   try {
     const ref = doc(db, 'participants', String(participantId), 'storyboards', String(storyboardId), 'characters', String(characterId));
@@ -72,6 +18,7 @@ export async function createEmptyCharacter(participantId, storyboardId, characte
 }
 
 // Fetch the number of characters for a specific participant and storyboard
+// Oct 9
 export async function fetchCharacterCount(participantId, storyboardId) {
   try {
     const charsRef = collection(
@@ -90,7 +37,180 @@ export async function fetchCharacterCount(participantId, storyboardId) {
   }
 }
 
-export async function uploadImageAndSaveMetadata(
+// Upload the character image
+// Oct 9
+export async function uploadCharAndSaveMetadata(
+  file,
+  participantId,
+  storyboardId,
+  characterId,
+  fullPrompt,
+  prompt,
+  charDescription,
+  selected = false
+) {
+  try {
+    // Reference to the character's images subcollection
+    const imagesRef = collection(
+      db,
+      'participants',
+      String(participantId),
+      'storyboards',
+      String(storyboardId),
+      'characters',
+      String(characterId),
+      'images'
+    )
+
+    // Get existing images to determine next imageId
+    const snapshot = await getDocs(imagesRef)
+
+    const existingImageIds = snapshot.docs.map((doc) => doc.data().imageId || 0)
+    const nextImageId = (existingImageIds.length > 0 ? Math.max(...existingImageIds) : 0) + 1
+
+    // File upload path
+    const filePath = `${import.meta.env.VITE_FIREBASE_STORAGE_FOLDER}/${participantId}/${storyboardId}/${characterId}_${Date.now()}_${file.name}`
+    const storageRef = ref(storage, filePath)
+
+    // Upload the file
+    await uploadBytes(storageRef, file)
+
+    // Get the public download URL
+    const downloadURL = await getDownloadURL(storageRef)
+
+    // If selected, mark all others as unselected first
+    if (selected) {
+      for (const doc of snapshot.docs) {
+        if (doc.data().selected === true) {
+          await updateDoc(doc.ref, { selected: false });
+        }
+      }
+    }
+
+    // Add a new image document under the images subcollection
+    await addDoc(imagesRef, {
+      imageId: nextImageId,
+      participantId,
+      storyboardId,
+      characterId,
+      downloadURL,
+      selected,
+      fullPrompt,
+      prompt,
+      charDescription,
+      createdAt: new Date().toISOString(),
+    })
+
+    console.log(`Image ${nextImageId} uploaded for character ${characterId}`)
+    return downloadURL
+  } catch (error) {
+    console.error('Error uploading image and saving metadata:', error)
+    throw error
+  }
+}
+
+// Fetches all the character images created for the specific character in the storyboard
+// Oct 9
+export async function fetchAllCharImages(participantId, storyboardId, characterId) {
+  const charsRef = collection(
+    db,
+    'participants',
+    String(participantId),
+    'storyboards',
+    String(storyboardId),
+    'characters',
+    String(characterId),
+    'images'
+  )
+
+  const querySnapshot = await getDocs(charsRef)
+
+  const results = querySnapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+    }
+  })
+
+  results.sort((a, b) => {
+    // First: selected first
+    if (a.selected && !b.selected) return -1
+    if (!a.selected && b.selected) return 1
+
+    // Then: descending imageId
+    return b.imageId - a.imageId
+  })
+  return [...results]
+}
+
+// Fetches all the character images which are the selected image for the specific character in the storyboard
+// Oct 9
+export async function fetchAllSelectedChars(participantId, storyboardId) {
+  const charsRef = collection(
+    db,
+    'participants',
+    String(participantId),
+    'storyboards',
+    String(storyboardId),
+    'characters'
+  )
+
+  // Get all character docs
+  const charSnapshot = await getDocs(charsRef)
+
+  // For each character, get the selected image (from its subcollection)
+  const charactersWithSelectedImages = await Promise.all(
+    charSnapshot.docs.map(async (charDoc) => {
+      const charData = charDoc.data()
+      const charId = charDoc.id
+
+      const imagesRef = collection(
+        db,
+        'participants',
+        String(participantId),
+        'storyboards',
+        String(storyboardId),
+        'characters',
+        String(charId),
+        'images'
+      )
+
+      // Query for selected image(s)
+      const q = query(imagesRef, where('selected', '==', true))
+      const selectedSnapshot = await getDocs(q)
+
+      let selectedImage = null
+      if (!selectedSnapshot.empty) {
+        selectedImage = selectedSnapshot.docs[0].data()
+      }
+
+      return {
+        id: charId,
+        ...charData,
+        selectedImage,
+      }
+    })
+  )
+
+  // Sort by character number (assuming numeric IDs or a field like "number")
+  charactersWithSelectedImages.sort((a, b) => {
+    const numA = Number(a.id)
+    const numB = Number(b.id)
+    return numA - numB
+  })
+
+  const selectedImages = charactersWithSelectedImages
+    .map((char) => char.selectedImage)
+    .filter((img) => img !== null && img !== undefined)
+
+  // console.log('Selected characters:', charactersWithSelectedImages)
+  return selectedImages
+}
+
+// Upload the scene image
+// Oct 9
+export async function uploadSceneImageAndSaveMetadata(
   file,
   participantId,
   storyboardId,
@@ -101,20 +221,24 @@ export async function uploadImageAndSaveMetadata(
 ) {
   try {
     // Get all existing images for the given participant, storyboard, and scene
-    const imagesRef = collection(db, 'participants')
-    const q = query(
-      imagesRef,
-      where('participantId', '==', participantId),
-      where('storyboardId', '==', storyboardId),
-      where('sceneId', '==', sceneId)
+    const imagesRef = collection(
+      db,
+      'participants',
+      String(participantId),
+      'storyboards',
+      String(storyboardId),
+      'scenes',
+      String(sceneId),
+      'images'
     )
-    const snapshot = await getDocs(q)
+
+    const snapshot = await getDocs(imagesRef)
 
     // Determine max imageId and increment
     const existingImageIds = snapshot.docs.map((doc) => doc.data().imageId || 0)
     const nextImageId = (existingImageIds.length > 0 ? Math.max(...existingImageIds) : 0) + 1
 
-    const filePath = `userstudy-app-images/${participantId}/${storyboardId}/${sceneId}_${Date.now()}_${file.name}`
+    const filePath = `${import.meta.env.VITE_FIREBASE_STORAGE_FOLDER}/${participantId}/${storyboardId}/${sceneId}_${Date.now()}_${file.name}`
     const storageRef = ref(storage, filePath)
 
     // Upload image to Cloud Storage
@@ -123,8 +247,17 @@ export async function uploadImageAndSaveMetadata(
     // Get download URL
     const downloadURL = await getDownloadURL(storageRef)
 
+    // If selected, mark all others as unselected first
+    if (selected) {
+      for (const doc of snapshot.docs) {
+        if (doc.data().selected === true) {
+          await updateDoc(doc.ref, { selected: false });
+        }
+      }
+    }
+
     // Save to Firestore
-    const docRef = await addDoc(collection(db, 'participants'), {
+    await addDoc(imagesRef, {
       imageId: nextImageId,
       participantId,
       storyboardId,
@@ -136,12 +269,45 @@ export async function uploadImageAndSaveMetadata(
       createdAt: new Date(),
     })
 
-    console.log('Document written with ID: ', docRef.id)
     return downloadURL
   } catch (error) {
     console.error('Error uploading image: ', error)
     throw error
   }
+}
+
+// fetch images for a specific participant, storyboard, and scene
+export async function fetchSceneImages(participantId, storyboardId, sceneId) {
+  const imagesRef = collection(
+    db,
+    'participants',
+    String(participantId),
+    'storyboards',
+    String(storyboardId),
+    'scenes',
+    String(sceneId),
+    'images'
+  )
+
+  const querySnapshot = await getDocs(imagesRef)
+
+  const results = querySnapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+    }
+  })
+
+  results.sort((a, b) => {
+    // First: selected first
+    if (a.selected && !b.selected) return -1
+    if (!a.selected && b.selected) return 1
+
+    // Then: descending imageId
+    return b.imageId - a.imageId
+  })
+  return [...results]
 }
 
 // Sets all images specified by participantId, storyboardId, and sceneId as unselected
@@ -171,25 +337,33 @@ export async function setAllImagesUnselected(participantId, storyboardId, sceneI
   }
 }
 
-// Sets the image specified by imageId as selected
+// Sets the image specified by imageId as selected for the given sceneId
 // unselects any previously selected image for the same participant, storyboard, and scene
-export async function setSelectedImage(participantId, storyboardId, sceneId, imageId) {
+// Oct 9
+export async function setSelectedSceneImage(participantId, storyboardId, sceneId, imageId) {
   try {
-    const q = query(
-      collection(db, 'participants'),
-      where('participantId', '==', participantId),
-      where('storyboardId', '==', storyboardId),
-      where('sceneId', '==', sceneId)
+    const charsRef = collection(
+      db,
+      'participants',
+      String(participantId),
+      'storyboards',
+      String(storyboardId),
+      'scenes',
+      String(sceneId),
+      'images',
     )
+    const q = query(charsRef)
 
     const snapshot = await getDocs(q)
+
+    console.log(snapshot.docs)
 
     for (const docSnap of snapshot.docs) {
       const data = docSnap.data()
 
       // Step 1: Unselect any selected image
       if (data.selected && docSnap.id !== imageId) {
-        await updateDoc(doc(db, 'participants', docSnap.id), {
+        await updateDoc(docSnap.ref, {
           selected: false,
         })
       }
@@ -201,7 +375,7 @@ export async function setSelectedImage(participantId, storyboardId, sceneId, ima
         data.sceneId === sceneId &&
         data.imageId === imageId
       ) {
-        await updateDoc(doc(db, 'participants', docSnap.id), {
+        await updateDoc(docSnap.ref, {
           selected: true,
         })
       }
@@ -214,33 +388,55 @@ export async function setSelectedImage(participantId, storyboardId, sceneId, ima
   }
 }
 
-export async function fetchImages(participantId, storyboardId, sceneId) {
-  const q = query(
-    collection(db, 'participants'),
-    where('participantId', '==', participantId),
-    where('storyboardId', '==', storyboardId),
-    where('sceneId', '==', sceneId)
-  )
+// Sets the image specified by imageId as selected for the given charId
+// unselects any previously selected image for the same participant, storyboard, and scene
+// Oct 9
+export async function setSelectedCharImage(participantId, storyboardId, charId, imageId) {
+  try {
+    const charsRef = collection(
+      db,
+      'participants',
+      String(participantId),
+      'storyboards',
+      String(storyboardId),
+      'characters',
+      String(charId),
+      'images',
+    )
+    const q = query(charsRef)
 
-  const querySnapshot = await getDocs(q)
+    const snapshot = await getDocs(q)
 
-  const results = querySnapshot.docs.map((doc) => {
-    const data = doc.data()
-    return {
-      id: doc.id,
-      ...data,
+    console.log(snapshot.docs)
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data()
+
+      // Step 1: Unselect any selected image
+      if (data.selected && docSnap.id !== imageId) {
+        await updateDoc(docSnap.ref, {
+          selected: false,
+        })
+      }
+
+      // Step 2: Set the matching image to selected
+      if (
+        data.participantId === participantId &&
+        data.storyboardId === storyboardId &&
+        data.characterId === charId &&
+        data.imageId === imageId
+      ) {
+        await updateDoc(docSnap.ref, {
+          selected: true,
+        })
+      }
     }
-  })
 
-  results.sort((a, b) => {
-    // First: selected first
-    if (a.selected && !b.selected) return -1
-    if (!a.selected && b.selected) return 1
-
-    // Then: descending imageId
-    return b.imageId - a.imageId
-  })
-  return [...results]
+    console.log(`Image ${imageId} is now selected.`)
+  } catch (error) {
+    console.error('Error setting selected image:', error)
+    throw error
+  }
 }
 
 // fetch images for a specific participant, storyboard, and if selected
