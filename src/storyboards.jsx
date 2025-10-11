@@ -1,17 +1,16 @@
 export const allStoryboards = [
   {
     id: 1,
-    type: 'Trial',
     title: 'Example Storyboard 1',
     robot: false,
-    scenes: [{ id: 1, title: 'Example Scene 1' },
-    { id: 2, title: 'Example Scene 2' },
-    { id: 3, title: 'Example Scene 3' },
+    scenes: [
+      { id: 1, title: 'Example Scene 1' },
+      { id: 2, title: 'Example Scene 2' },
+      { id: 3, title: 'Example Scene 3' },
     ],
   },
   {
     id: 2,
-    type: 'Storyboard',
     title: 'Example Storyboard 2',
     robot: true,
     scenes: [

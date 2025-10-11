@@ -10,7 +10,12 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { parseVoiceCommand } from './voiceParser'
 
 // Firebase imports
-import { fetchImagesBySelection, createEmptyCharacter, fetchCharacterCount } from './firebase/firebase_helper_functions'
+import {
+  fetchSceneImagesBySelection,
+  createEmptyCharacter,
+  fetchCharacterCount,
+  fetchAllSelectedChars,
+} from './firebase/firebase_helper_functions'
 
 // Style imports
 import './App.css'
@@ -39,7 +44,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
   const [currentScene, setCurrentScene] = useState(null)
   const [selectedImages, setSelectedImages] = useState({})
   const [currCharacter, setCurrCharacter] = useState(0)
-  const [characterImage, setCharacterImage] = useState(null)
+  const [selectedCharImgs, setSelectedCharImgs] = useState({})
   const [numChar, setNumChar] = useState(0)
 
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
@@ -148,18 +153,31 @@ export function StoryBoard({ participant, storyboard, onBack }) {
   }, [currentScene, numChar])
 
   const fetchThings = async () => {
-    let results = await fetchImagesBySelection(participant, storyboard.id)
-    let num_chars = await fetchCharacterCount(participant, storyboard.id)
-    setNumChar(num_chars)
+    let results = await fetchSceneImagesBySelection(participant, storyboard.id)
     const imagesByScene = {}
     results.forEach((image) => {
       if (!imagesByScene[image.sceneId]) {
         imagesByScene[image.sceneId] = []
       }
-      imagesByScene[image.sceneId].push(image)
+      imagesByScene[image.sceneId] = image
     })
-
     setSelectedImages(imagesByScene)
+    console.log(participant, storyboard.id)
+    console.log('Scene images:', imagesByScene)
+
+    let num_chars = await fetchCharacterCount(participant, storyboard.id)
+    setNumChar(num_chars)
+
+    let charImgs = await fetchAllSelectedChars(participant, storyboard.id)
+    const charImgsById = {}
+    charImgs.forEach((charImg) => {
+      if (!charImgsById[charImg.characterId]) {
+        charImgsById[charImg.characterId] = []
+      }
+      charImgsById[charImg.characterId] = charImg
+    })
+    setSelectedCharImgs(charImgsById)
+    console.log('Character images:', charImgsById)
   }
 
   const addChar = () => {
@@ -173,11 +191,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
     console.log('Parsed command:', parsed)
     if (!parsed) return
 
-    if (
-      ((storyboard.type === 'Storyboard' || storyboard.type === 'Trial') &&
-        parsed.context === 'scene') ||
-      (storyboard.type === 'Moments' && parsed.context === 'moment')
-    ) {
+    if (parsed.context === 'scene') {
       const selected = storyboard.scenes.find((s) => s.id === parseInt(parsed.number))
 
       if (selected) {
@@ -273,42 +287,32 @@ export function StoryBoard({ participant, storyboard, onBack }) {
                     }}
                   >
                     <p>
-                      {storyboard.type === 'Moments' ? (
-                        <strong>
-                          Moment {scene.id}: {scene.title}
-                        </strong>
-                      ) : (
-                        <strong>
-                          Scene {scene.id}: {scene.title}
-                        </strong>
-                      )}
+                      <strong>
+                        {scene.title}
+                      </strong>
                     </p>
 
-                    {selectedImages[scene.id]?.[0]?.downloadURL && (
+                    {selectedImages[scene.id]?.downloadURL && (
                       <div className="scene-image-container">
                         <img
-                          src={selectedImages[scene.id][0].downloadURL}
+                          src={selectedImages[scene.id].downloadURL}
                           alt={`Scene ${scene.id}`}
                           className="scene-image"
                         />
                         <p>
-                          {selectedImages[scene.id][0].prompt.length > 100
-                            ? selectedImages[scene.id][0].prompt.substring(
+                          {selectedImages[scene.id].prompt.length > 100
+                            ? selectedImages[scene.id].prompt.substring(
                               0,
                               100
                             ) + '...'
-                            : selectedImages[scene.id][0].prompt}
+                            : selectedImages[scene.id].prompt}
                         </p>
                       </div>
                     )}
 
                     <button
                       className="scene-button2"
-                      onClick={() =>
-                        storyboard.type === 'Moments'
-                          ? handleVoiceCommand(`go to moment ${scene.id}`)
-                          : handleVoiceCommand(`go to scene ${scene.id}`)
-                      }
+                      onClick={() => handleVoiceCommand(`go to scene ${scene.id}`)}
                     >
                       Go
                     </button>
@@ -333,7 +337,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
                   <p>
                     <strong>Character {i + 1}</strong>
                   </p>
-                  <img src={characterImage} className="scene-image" width="100%" />
+                  <img src={selectedCharImgs[i + 1] ? selectedCharImgs[i + 1].downloadURL : null} className="scene-image" width="100%" />
                   <button
                     className="scene-button1"
                     onClick={() => setCurrCharacter(i + 1)}

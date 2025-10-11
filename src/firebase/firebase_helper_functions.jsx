@@ -1,6 +1,6 @@
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage, db } from './firebase'
-import { collection, addDoc, setDoc, query, where, getDocs, updateDoc, doc } from 'firebase/firestore'
+import { collection, collectionGroup, addDoc, setDoc, query, where, getDocs, updateDoc, doc } from 'firebase/firestore'
 
 // Update Storyboard with the number of characters
 // Oct 9
@@ -220,7 +220,20 @@ export async function uploadSceneImageAndSaveMetadata(
   selected = false
 ) {
   try {
-    // Get all existing images for the given participant, storyboard, and scene
+    // Ensure the scene document exists
+    const sceneDocRef = doc(
+      db,
+      'participants',
+      String(participantId),
+      'storyboards',
+      String(storyboardId),
+      'scenes',
+      String(sceneId)
+    );
+
+    await setDoc(sceneDocRef, { createdAt: new Date() }, { merge: true });
+
+    // Reference images subcollection
     const imagesRef = collection(
       db,
       'participants',
@@ -230,24 +243,19 @@ export async function uploadSceneImageAndSaveMetadata(
       'scenes',
       String(sceneId),
       'images'
-    )
+    );
 
-    const snapshot = await getDocs(imagesRef)
+    const snapshot = await getDocs(imagesRef);
 
-    // Determine max imageId and increment
-    const existingImageIds = snapshot.docs.map((doc) => doc.data().imageId || 0)
-    const nextImageId = (existingImageIds.length > 0 ? Math.max(...existingImageIds) : 0) + 1
+    const existingImageIds = snapshot.docs.map((doc) => doc.data().imageId || 0);
+    const nextImageId = (existingImageIds.length > 0 ? Math.max(...existingImageIds) : 0) + 1;
 
-    const filePath = `${import.meta.env.VITE_FIREBASE_STORAGE_FOLDER}/${participantId}/${storyboardId}/${sceneId}_${Date.now()}_${file.name}`
-    const storageRef = ref(storage, filePath)
+    const filePath = `${import.meta.env.VITE_FIREBASE_STORAGE_FOLDER}/${participantId}/${storyboardId}/${sceneId}_${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, filePath);
 
-    // Upload image to Cloud Storage
-    await uploadBytes(storageRef, file)
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
 
-    // Get download URL
-    const downloadURL = await getDownloadURL(storageRef)
-
-    // If selected, mark all others as unselected first
     if (selected) {
       for (const doc of snapshot.docs) {
         if (doc.data().selected === true) {
@@ -256,7 +264,6 @@ export async function uploadSceneImageAndSaveMetadata(
       }
     }
 
-    // Save to Firestore
     await addDoc(imagesRef, {
       imageId: nextImageId,
       participantId,
@@ -267,12 +274,12 @@ export async function uploadSceneImageAndSaveMetadata(
       fullPrompt,
       prompt,
       createdAt: new Date(),
-    })
+    });
 
-    return downloadURL
+    return downloadURL;
   } catch (error) {
-    console.error('Error uploading image: ', error)
-    throw error
+    console.error('Error uploading image: ', error);
+    throw error;
   }
 }
 
@@ -439,31 +446,66 @@ export async function setSelectedCharImage(participantId, storyboardId, charId, 
   }
 }
 
-// fetch images for a specific participant, storyboard, and if selected
-export async function fetchImagesBySelection(participantId, storyboardId) {
-  try {
-    const q = query(
-      collection(db, 'participants'),
-      where('participantId', '==', participantId),
-      where('storyboardId', '==', storyboardId),
-      where('selected', '==', true)
-    )
+// fetch scene images for a specific participant, storyboard, and if selected
+// Oct 9
+export async function fetchSceneImagesBySelection(participantId, storyboardId) {
+  // Reference to scenes collection
+  const scenesRef = collection(
+    db,
+    "participants",
+    String(participantId),
+    "storyboards",
+    String(storyboardId),
+    "scenes"
+  );
 
-    const querySnapshot = await getDocs(q)
+  // Get all scenes
+  const sceneSnapshot = await getDocs(scenesRef);
 
-    const results = querySnapshot.docs.map((doc) => {
-      const data = doc.data()
+  // For each scene, get selected images
+  const scenesWithSelectedImages = await Promise.all(
+    sceneSnapshot.docs.map(async (sceneDoc) => {
+      const sceneId = sceneDoc.id;
+      const sceneData = sceneDoc.data();
+
+      const imagesRef = collection(
+        db,
+        "participants",
+        String(participantId),
+        "storyboards",
+        String(storyboardId),
+        "scenes",
+        String(sceneId),
+        "images"
+      );
+
+      const q = query(imagesRef, where('selected', '==', true))
+      const imageSnapshot = await getDocs(q);
+
+      let selectedImage = null
+      if (!imageSnapshot.empty) {
+        selectedImage = imageSnapshot.docs[0].data()
+      }
       return {
-        id: doc.id,
-        ...data,
+        id: sceneId,
+        ...sceneData,
+        selectedImage,
       }
     })
+  );
 
-    return results
-  } catch (error) {
-    console.error('Error fetching images:', error)
-    throw error
-  }
+  // Sort by character number (assuming numeric IDs or a field like "number")
+  scenesWithSelectedImages.sort((a, b) => {
+    const numA = Number(a.id)
+    const numB = Number(b.id)
+    return numA - numB
+  })
+
+  const selectedImages = scenesWithSelectedImages
+    .map((char) => char.selectedImage)
+    .filter((img) => img !== null && img !== undefined)
+
+  return selectedImages;
 }
 
 // fetch character for a specific participant

@@ -13,7 +13,7 @@ import { parseVoiceCommand } from './voiceParser'
 import {
   fetchCharacter,
   fetchRobot,
-  fetchImagesBySelection,
+  fetchSceneImagesBySelection,
 } from './firebase/firebase_helper_functions'
 
 // Style imports
@@ -207,7 +207,7 @@ export function AllStoryBoards({ storyboards }) {
         }
         let sbsImages = []
         for (let i = 0; i < storyboards.length; i++) {
-          let results = await fetchImagesBySelection(participant, storyboards[i].id)
+          let results = await fetchSceneImagesBySelection(participant, storyboards[i].id)
           const imagesByScene = {}
           results.forEach((image) => {
             if (!imagesByScene[image.sceneId]) {
@@ -297,7 +297,7 @@ export function AllStoryBoards({ storyboards }) {
                       }}
                     >
                       <p>
-                        <strong>{sb.type}</strong>
+                        <strong>{sb.title}</strong>
                       </p>
                       <div
                         style={{
