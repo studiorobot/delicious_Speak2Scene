@@ -20,7 +20,8 @@ import {
 // Style imports
 import './App.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleLeft } from '@fortawesome/free-solid-svg-icons'
+import { faCircleRight, faCircleLeft, faCircleUp, faCircleDown } from '@fortawesome/free-solid-svg-icons'
+import fallbackImage from './questionmark.jpg';
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
 
@@ -36,6 +37,8 @@ const HOT_WORDS = {
   GO_BACK: 'go back',
   SCROLL_RIGHT: 'scroll right',
   SCROLL_LEFT: 'scroll left',
+  SCROLL_UP: 'scroll up',
+  SCROLL_DOWN: 'scroll down'
 }
 
 export function StoryBoard({ participant, storyboard, onBack }) {
@@ -53,15 +56,15 @@ export function StoryBoard({ participant, storyboard, onBack }) {
   const responsive = {
     superLargeDesktop: {
       breakpoint: { max: 4000, min: 2000 },
-      items: 10,
+      items: 1,
     },
     desktop: {
       breakpoint: { max: 2000, min: 900 },
-      items: 4,
+      items: 1,
     },
     tablet: {
       breakpoint: { max: 900, min: 768 },
-      items: 3,
+      items: 1,
     },
     mobile: {
       breakpoint: { max: 768, min: 0 },
@@ -112,7 +115,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
       lower.includes(HOT_WORDS.STOP)
     ) {
       console.log('Scroll right triggered')
-      const rightArrow = document.querySelector('.react-multiple-carousel__arrow--right')
+      const rightArrow = document.querySelector('.carousel-right-arrow')
       if (rightArrow) {
         rightArrow.click()
       }
@@ -124,9 +127,33 @@ export function StoryBoard({ participant, storyboard, onBack }) {
       lower.includes(HOT_WORDS.STOP)
     ) {
       console.log('Scroll left triggered')
-      const leftArrow = document.querySelector('.react-multiple-carousel__arrow--left')
+      const leftArrow = document.querySelector('.carousel-left-arrow')
       if (leftArrow) {
         leftArrow.click()
+      }
+      setStatus(STATUS.WAITING)
+      resetTranscript()
+    } else if (
+      status === STATUS.LISTENING &&
+      lower.includes(HOT_WORDS.SCROLL_UP) &&
+      lower.includes(HOT_WORDS.STOP)
+    ) {
+      console.log('Scroll up triggered')
+      const upArrow = document.querySelector('.scroll-up')
+      if (upArrow) {
+        upArrow.click()
+      }
+      setStatus(STATUS.WAITING)
+      resetTranscript()
+    } else if (
+      status === STATUS.LISTENING &&
+      lower.includes(HOT_WORDS.SCROLL_DOWN) &&
+      lower.includes(HOT_WORDS.STOP)
+    ) {
+      console.log('Scroll down triggered')
+      const downArrow = document.querySelector('.scroll-down')
+      if (downArrow) {
+        downArrow.click()
       }
       setStatus(STATUS.WAITING)
       resetTranscript()
@@ -226,7 +253,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
                 icon={faCircleLeft}
               />
               <h4 className="pagename" style={{ border: '5px dashed #dc267f' }}>
-                <u>{storyboard.type}:</u> {storyboard.title}
+                SB {storyboard.id}: {storyboard.title}
               </h4>
               <p className="participant">
                 <strong>Participant:</strong> {participant}
@@ -258,7 +285,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
           <div className="container-lr">
             <div
               style={{
-                maxWidth: '90vw',
+                maxWidth: '80vw',
                 overflow: 'hidden',
                 marginTop: '10px',
               }}
@@ -270,89 +297,274 @@ export function StoryBoard({ participant, storyboard, onBack }) {
                 arrows={true}
                 keyBoardControl={true}
                 containerClass="carousel-container"
-                itemClass="carousel-item-padding-40-px"
+                itemClass="carousel-item"
                 removeArrowOnDeviceType={[]}
                 customTransition="all 0.3s ease-in-out"
                 transitionDuration={300}
-              >
-                {storyboard.scenes.map((scene) => (
-                  <div
-                    key={scene.id}
+                customLeftArrow={
+                  <button
+                    aria-label="Previous"
                     style={{
-                      padding: '10px',
-                      margin: '10px',
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      backgroundColor: 'white',
                       border: '1px solid #ccc',
-                      borderRadius: '8px',
-                      height: 'auto',
+                      borderRadius: '50%',
+                      padding: '6px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      zIndex: 2,
                     }}
+                    className='carousel-left-arrow'
                   >
-                    <p>
-                      <strong>
-                        {scene.title}
-                      </strong>
-                    </p>
-
-                    {selectedImages[scene.id]?.downloadURL && (
-                      <div className="scene-image-container">
-                        <img
-                          src={selectedImages[scene.id].downloadURL}
-                          alt={`Scene ${scene.id}`}
-                          className="scene-image"
-                        />
-                        <p>
-                          {selectedImages[scene.id].prompt.length > 100
-                            ? selectedImages[scene.id].prompt.substring(
-                              0,
-                              100
-                            ) + '...'
-                            : selectedImages[scene.id].prompt}
-                        </p>
-                      </div>
-                    )}
-
-                    <button
-                      className="scene-button2"
-                      onClick={() => handleVoiceCommand(`go to scene ${scene.id}`)}
+                    <FontAwesomeIcon
+                      className="go-back-button"
+                      icon={faCircleLeft}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        marginBottom: '4px',
+                      }}
+                    />
+                  </button>
+                }
+                customRightArrow={
+                  <button
+                    aria-label="Next"
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      backgroundColor: 'white',
+                      border: '1px solid #ccc',
+                      borderRadius: '50%',
+                      padding: '6px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      zIndex: 2,
+                    }}
+                    className='carousel-right-arrow'
+                  >
+                    <FontAwesomeIcon
+                      className="go-back-button"
+                      icon={faCircleRight}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        marginBottom: '4px',
+                      }}
+                    />
+                  </button>
+                }
+              >
+                {/* Group scenes into chunks of 6 */}
+                {Array.from({ length: Math.ceil(storyboard.scenes.length / 6) }, (_, index) => {
+                  const scenesChunk = storyboard.scenes.slice(index * 6, index * 6 + 6)
+                  return (
+                    <div
+                      key={index}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateRows: 'repeat(2, auto)',
+                        gap: '8px',
+                        // padding: '10px',
+                      }}
                     >
-                      Go
-                    </button>
-                  </div>
-                ))}
+                      {scenesChunk.map((scene) => (
+                        <div
+                          key={scene.id}
+                          style={{
+                            padding: '10px',
+                            border: '1px solid #ccc',
+                            borderRadius: '8px',
+                            backgroundColor: '#fff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <p>
+                            <strong>
+                              Scene {scene.id}: {scene.title}
+                            </strong>
+                          </p>
+
+                          <div className="scene-image-container" style={{ textAlign: 'center' }}>
+                            <img
+                              src={selectedImages[scene.id]?.downloadURL || fallbackImage}
+                              alt={`Scene ${scene.id}`}
+                              className="scene-image"
+                              style={{
+                                width: '100px',
+                                height: '100px',
+                                objectFit: 'cover',
+                                borderRadius: '6px',
+                              }}
+                            />
+                          </div>
+
+                          {selectedImages[scene.id]?.prompt && (
+                            <p style={{ fontSize: '0.9em', marginTop: '5px' }}>
+                              {selectedImages[scene.id].prompt.length > 100
+                                ? selectedImages[scene.id].prompt.substring(0, 100) + '...'
+                                : selectedImages[scene.id].prompt}
+                            </p>
+                          )}
+
+                          <button
+                            className="scene-button2"
+                            style={{ marginTop: '4px' }}
+                            onClick={() => handleVoiceCommand(`go to scene ${scene.id}`)}
+                          >
+                            Go
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
               </Carousel>
             </div>
-            <div className="right">
-              {Array.from({ length: numChar }, (_, i) => (
-                <div
+
+            <div
+              className="right"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                width: 'fit-content',
+                paddingLeft: '10px',
+              }}
+            >
+              {numChar != 0 ? (<>
+                <button
+                  className='scroll-up'
+                  onClick={() =>
+                    document.getElementById('charGrid').scrollBy({ top: -200, behavior: 'smooth' })
+                  }
+                  aria-label="Scroll up"
                   style={{
-                    padding: '10px',
-                    margin: '10px',
+                    backgroundColor: 'white',
                     border: '1px solid #ccc',
-                    borderRadius: '8px',
-                    width: '180px',
-                    height: 'auto',
-                    display: 'inline-block',
+                    borderRadius: '50%',
+                    padding: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
-                  key={i + 1}
+                ><FontAwesomeIcon
+                    className="go-back-button"
+                    icon={faCircleUp}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      marginBottom: '4px',
+                    }}
+                  /></button>
+
+                {/* Scrollable grid */}
+                <div
+                  id="charGrid"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '8px',
+                    maxHeight: '260px', // visible 2x2 area
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth',
+                    paddingRight: '4px',
+                  }}
                 >
-                  <p>
-                    <strong>Character {i + 1}</strong>
-                  </p>
-                  <img src={selectedCharImgs[i + 1] ? selectedCharImgs[i + 1].downloadURL : null} className="scene-image" width="100%" />
-                  <button
-                    className="scene-button1"
-                    onClick={() => setCurrCharacter(i + 1)}
-                  >
-                    Go
-                  </button>
+                  {Array.from({ length: numChar }, (_, i) => (
+                    <div
+                      key={i + 1}
+                      style={{
+                        padding: '10px',
+                        border: '1px solid #ccc',
+                        borderRadius: '8px',
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        width: '100px',
+                        height: 'auto',
+                      }}
+                    >
+                      <p style={{ fontSize: '0.9em', fontWeight: 'bold', marginBottom: '4px' }}>
+                        Character {i + 1}
+                      </p>
+
+                      <img
+                        src={
+                          selectedCharImgs[i + 1]
+                            ? selectedCharImgs[i + 1].downloadURL
+                            : fallbackImage
+                        }
+                        alt={`Character ${i + 1}`}
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          objectFit: 'cover',
+                          borderRadius: '6px',
+                          marginBottom: '6px',
+                        }}
+                      />
+
+                      <button
+                        className="scene-button2"
+                        onClick={() => setCurrCharacter(i + 1)}
+                      >
+                        Go
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+
+                {/* Scroll down button */}
+                <button
+                  className='scroll-down'
+                  onClick={() =>
+                    document.getElementById('charGrid').scrollBy({ top: 200, behavior: 'smooth' })
+                  }
+                  aria-label="Scroll down"
+                  style={{
+                    backgroundColor: 'white',
+                    border: '1px solid #ccc',
+                    borderRadius: '50%',
+                    padding: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  }}
+                ><FontAwesomeIcon
+                    className="go-back-button"
+                    icon={faCircleDown}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      marginBottom: '4px',
+                    }}
+                  /></button>
+              </>) : ('')}
+              {/* Add Character button */}
               <button
-                className="scene-button1"
+                className="scene-button2"
                 onClick={() => addChar()}
+                style={{ marginTop: '8px' }}
               >
                 Add Character
               </button>
             </div>
+
           </div>
         </div>
       ) : currCharacter == 0 ? (

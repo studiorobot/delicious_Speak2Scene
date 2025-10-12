@@ -1,25 +1,27 @@
 export const allStoryboards = [
   {
     id: 1,
-    title: 'Example Storyboard 1',
+    title: '<Example>',
     robot: false,
     scenes: [
-      { id: 1, title: 'Example Scene 1' },
-      { id: 2, title: 'Example Scene 2' },
-      { id: 3, title: 'Example Scene 3' },
+      { id: 1, title: '<Example>' },
+      { id: 2, title: '<Example>' },
+      { id: 3, title: '<Example>' },
     ],
   },
   {
     id: 2,
-    title: 'Example Storyboard 2',
+    title: '<Example>',
     robot: true,
     scenes: [
-      { id: 1, title: 'Example Scene 1' },
-      { id: 2, title: 'Example Scene 2' },
-      { id: 3, title: 'Example Scene 3' },
-      { id: 4, title: 'Example Scene 4' },
-      { id: 5, title: 'Example Scene 5' },
-      { id: 6, title: 'Example Scene 6' },
+      { id: 1, title: '<Example>' },
+      { id: 2, title: '<Example>' },
+      { id: 3, title: '<Example>' },
+      { id: 4, title: '<Example>' },
+      { id: 5, title: '<Example>' },
+      { id: 6, title: '<Example>' },
+      { id: 7, title: '<Example>' },
+      { id: 8, title: '<Example>' },
     ],
   }
 ]

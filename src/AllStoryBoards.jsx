@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import { StoryBoard } from './StoryBoard'
-import { IndividualScene } from './IndividualScene'
 
 // Speech recoginition imports
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
@@ -11,8 +10,6 @@ import { parseVoiceCommand } from './voiceParser'
 
 // Firebase imports
 import {
-  fetchCharacter,
-  fetchRobot,
   fetchSceneImagesBySelection,
 } from './firebase/firebase_helper_functions'
 
@@ -20,6 +17,7 @@ import {
 import './App.css'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
+import fallbackImage from './questionmark.jpg';
 
 const STATUS = {
   WAITING: 'Waiting',
@@ -97,45 +95,6 @@ export function AllStoryBoards({ storyboards }) {
       return
     } else if (
       status === STATUS.LISTENING &&
-      lower.includes(HOT_WORDS.TRIAL) &&
-      lower.includes(HOT_WORDS.STOP) &&
-      !robot &&
-      !character
-    ) {
-      console.log('Robot creation triggered')
-      const selected = storyboards.find((sb) => sb.id === 1)
-      setStatus(STATUS.WAITING)
-      setCurrentStoryboard(selected)
-      resetTranscript()
-      return
-    } else if (
-      status === STATUS.LISTENING &&
-      lower.includes(HOT_WORDS.STORYBOARD) &&
-      lower.includes(HOT_WORDS.STOP) &&
-      !robot &&
-      !character
-    ) {
-      console.log('Robot creation triggered')
-      const selected = storyboards.find((sb) => sb.id === 2)
-      setStatus(STATUS.WAITING)
-      setCurrentStoryboard(selected)
-      resetTranscript()
-      return
-    } else if (
-      status === STATUS.LISTENING &&
-      lower.includes(HOT_WORDS.MOMENTS) &&
-      lower.includes(HOT_WORDS.STOP) &&
-      !robot &&
-      !character
-    ) {
-      console.log('Robot creation triggered')
-      const selected = storyboards.find((sb) => sb.id === 3)
-      setStatus(STATUS.WAITING)
-      setCurrentStoryboard(selected)
-      resetTranscript()
-      return
-    } else if (
-      status === STATUS.LISTENING &&
       lower.includes(HOT_WORDS.SCROLL_RIGHT) &&
       lower.includes(HOT_WORDS.STOP)
     ) {
@@ -158,17 +117,17 @@ export function AllStoryBoards({ storyboards }) {
       }
       setStatus(STATUS.WAITING)
       resetTranscript()
-      // } else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
-      // 	console.log('Stop triggered')
-      // 	let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
-      // 	setCaptured(cleanedTranscript)
-      // 	setStatus(STATUS.WAITING)
-      // 	if (cleanedTranscript && cleanedTranscript.length > 0 && !currentStoryboard) {
-      // 		console.log('Handling voice command:', cleanedTranscript)
-      // 		setStatus(STATUS.WAITING)
-      // 		handleVoiceCommand(cleanedTranscript)
-      // 	}
-      // 	resetTranscript()
+    } else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
+      console.log('Stop triggered')
+      let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
+      setCaptured(cleanedTranscript)
+      setStatus(STATUS.WAITING)
+      if (cleanedTranscript && cleanedTranscript.length > 0 && !currentStoryboard) {
+        console.log('Handling voice command:', cleanedTranscript)
+        setStatus(STATUS.WAITING)
+        handleVoiceCommand(cleanedTranscript)
+      }
+      resetTranscript()
     } else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.CLEAR_TRANSCRIPT)) {
       console.log('clear triggered')
       resetTranscript()
@@ -176,35 +135,25 @@ export function AllStoryBoards({ storyboards }) {
   }, [transcript, currentStoryboard])
 
   // Function when there are multiple storyboards
-  // function handleVoiceCommand(command) {
-  // 	const parsed = parseVoiceCommand(command)
-  // 	console.log('Parsed command:', parsed)
-  // 	if (!parsed) return
+  function handleVoiceCommand(command) {
+    const parsed = parseVoiceCommand(command)
+    console.log('Parsed command:', parsed)
+    if (!parsed) return
 
-  // 	if (parsed.context === 'storyboard') {
-  // 		const selected = storyboards.find((sb) => sb.id === parseInt(parsed.number))
-  // 		console.log(selected)
-  // 		if (selected) {
-  // 			console.log('Selected storyboard:', selected)
-  // 			setCurrentStoryboard(selected)
-  // 			resetTranscript()
-  // 		}
-  // 	}
-  // }
+    if (parsed.context === 'storyboard') {
+      const selected = storyboards.find((sb) => sb.id === parseInt(parsed.number))
+      console.log(selected)
+      if (selected) {
+        console.log('Selected storyboard:', selected)
+        setCurrentStoryboard(selected)
+        resetTranscript()
+      }
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const charImg = await fetchCharacter(participant)
-        const roboImg = await fetchRobot(participant)
-        console.log('Avatar image:', charImg)
-        console.log('Robot image:', roboImg)
-        if (charImg.length > 0) {
-          setCharacterImage(charImg[0].downloadURL)
-        }
-        if (roboImg.length > 0) {
-          setRobotImage(roboImg[0].downloadURL)
-        }
         let sbsImages = []
         for (let i = 0; i < storyboards.length; i++) {
           let results = await fetchSceneImagesBySelection(participant, storyboards[i].id)
@@ -297,7 +246,7 @@ export function AllStoryBoards({ storyboards }) {
                       }}
                     >
                       <p>
-                        <strong>{sb.title}</strong>
+                        <strong>Storyboard {sb.id}: {sb.title}</strong>
                       </p>
                       <div
                         style={{
@@ -306,35 +255,33 @@ export function AllStoryBoards({ storyboards }) {
                           gap: '10px',
                         }}
                       >
-                        {selectedImages[sb.id - 1] &&
-                          Object.keys(selectedImages[sb.id - 1]).length >
-                          0 ? (
-                          Object.keys(selectedImages[sb.id - 1]).map(
-                            (key, index) => {
-                              const sceneImages =
-                                selectedImages[sb.id - 1][key]
-                              return Array.isArray(sceneImages) &&
-                                sceneImages[0] ? (
-                                <img
-                                  key={index}
-                                  src={sceneImages[0].downloadURL}
-                                  alt={`Scene ${index}`}
-                                  style={{
-                                    width: '100%', // Will auto-fit column width
-                                    height: 'auto',
-                                    objectFit: 'cover',
-                                  }}
-                                />
-                              ) : (
-                                <p key={index}>
-                                  Invalid image at index {key}
-                                </p>
-                              )
-                            }
+                        {storyboards[sb.id - 1].scenes.map((scene, index) => (
+                          selectedImages[sb.id - 1] &&
+                            selectedImages[sb.id - 1][scene.id] &&
+                            selectedImages[sb.id - 1][scene.id][0] ? (
+                            <img
+                              key={index}
+                              src={selectedImages[sb.id - 1][scene.id][0].downloadURL}
+                              alt={`Scene ${index}`}
+                              style={{
+                                width: '100%', // Will auto-fit column width
+                                height: 'auto',
+                                objectFit: 'cover',
+                              }}
+                            />
+                          ) : (
+                            <img
+                              key={index}
+                              src={fallbackImage}
+                              alt={`Scene ${index}`}
+                              style={{
+                                width: '100%', // Will auto-fit column width
+                                height: 'auto',
+                                objectFit: 'cover',
+                              }}
+                            />
                           )
-                        ) : (
-                          <p>No images available</p>
-                        )}
+                        ))}
                       </div>
 
                       <button

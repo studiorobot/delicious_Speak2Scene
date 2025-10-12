@@ -162,13 +162,13 @@ h1 {
 
 .left {
   display: inline-block;
-  width: 65%;
+  width: 79%;
 }
 
 .right {
-  border-left: #ffb000 5px solid;
+  border-left: #dc267f 5px solid;
   display: inline-block;
-  width: 35%;
+  width: 21%;
   /* background-color: #C6E2FF; */
   /* border-radius: 10px; */
 }
