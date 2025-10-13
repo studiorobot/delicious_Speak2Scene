@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // Firebase imports
 import { fetchAllParticipants } from './firebase/firebase_helper_functions'
