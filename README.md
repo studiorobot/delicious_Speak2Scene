@@ -43,8 +43,20 @@ delicious_userstudy-app/
 ```
 
 ### Requirements
+#### OpenAI API
+You will need an OpenAI API key which you can acquire through the OpenAI dashboard: https://platform.openai.com/docs/overview. Make sure to add enough funds into your account.
+
+#### Firebase
+- You will need to create a project on Firebase
+  - Feel free to use `test` mode
+- You will need access to Storage within the app
+- You will need access to Firestore Database within the app
+You can follow the instructions as outlined here: https://firebase.google.com/docs/firestore/quickstart#create
 
 ### Installation
+1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_userstudy-app.git` and For https: `git clone https://github.com/studiorobot/delicious_userstudy-app.git` to a local folder of your choice.
+2. Change directory into the app.
+3. Create a `.env` file by following the instructions [here](#env-file)
 
 ### `.env` file
 Make sure to create a `.env` file in the root folder and add the following: 
