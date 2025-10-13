@@ -56,7 +56,8 @@ You can follow the instructions as outlined here: https://firebase.google.com/do
 ### Installation
 1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_userstudy-app.git` and For https: `git clone https://github.com/studiorobot/delicious_userstudy-app.git` to a local folder of your choice.
 2. Change directory into the app.
-3. Create a `.env` file by following the instructions [here](#env-file)
+3. Create a `.env` file by following the instructions [here](#env-file) based on steps followed above.
+4. 
 
 ### `.env` file
 Make sure to create a `.env` file in the root folder and add the following: 
