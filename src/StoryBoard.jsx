@@ -292,6 +292,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
               className="left"
             >
               <Carousel
+                rtl={"false"}
                 responsive={responsive}
                 infinite={false}
                 arrows={true}

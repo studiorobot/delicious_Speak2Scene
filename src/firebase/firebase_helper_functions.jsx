@@ -3,7 +3,6 @@ import { storage, db } from './firebase'
 import { collection, collectionGroup, addDoc, setDoc, query, where, getDocs, updateDoc, doc } from 'firebase/firestore'
 
 // Update Storyboard with the number of characters
-// Oct 9
 export async function createEmptyCharacter(participantId, storyboardId, characterId) {
   try {
     const ref = doc(db, 'participants', String(participantId), 'storyboards', String(storyboardId), 'characters', String(characterId));
@@ -18,7 +17,6 @@ export async function createEmptyCharacter(participantId, storyboardId, characte
 }
 
 // Fetch the number of characters for a specific participant and storyboard
-// Oct 9
 export async function fetchCharacterCount(participantId, storyboardId) {
   try {
     const charsRef = collection(
@@ -38,7 +36,6 @@ export async function fetchCharacterCount(participantId, storyboardId) {
 }
 
 // Upload the character image
-// Oct 9
 export async function uploadCharAndSaveMetadata(
   file,
   participantId,
@@ -110,7 +107,6 @@ export async function uploadCharAndSaveMetadata(
 }
 
 // Fetches all the character images created for the specific character in the storyboard
-// Oct 9
 export async function fetchAllCharImages(participantId, storyboardId, characterId) {
   const charsRef = collection(
     db,
@@ -145,7 +141,6 @@ export async function fetchAllCharImages(participantId, storyboardId, characterI
 }
 
 // Fetches all the character images which are the selected image for the specific character in the storyboard
-// Oct 9
 export async function fetchAllSelectedChars(participantId, storyboardId) {
   const charsRef = collection(
     db,
@@ -209,7 +204,6 @@ export async function fetchAllSelectedChars(participantId, storyboardId) {
 }
 
 // Upload the scene image
-// Oct 9
 export async function uploadSceneImageAndSaveMetadata(
   file,
   participantId,
@@ -346,7 +340,6 @@ export async function setAllImagesUnselected(participantId, storyboardId, sceneI
 
 // Sets the image specified by imageId as selected for the given sceneId
 // unselects any previously selected image for the same participant, storyboard, and scene
-// Oct 9
 export async function setSelectedSceneImage(participantId, storyboardId, sceneId, imageId) {
   try {
     const charsRef = collection(
@@ -397,7 +390,6 @@ export async function setSelectedSceneImage(participantId, storyboardId, sceneId
 
 // Sets the image specified by imageId as selected for the given charId
 // unselects any previously selected image for the same participant, storyboard, and scene
-// Oct 9
 export async function setSelectedCharImage(participantId, storyboardId, charId, imageId) {
   try {
     const charsRef = collection(
@@ -447,7 +439,6 @@ export async function setSelectedCharImage(participantId, storyboardId, charId, 
 }
 
 // fetch scene images for a specific participant, storyboard, and if selected
-// Oct 9
 export async function fetchSceneImagesBySelection(participantId, storyboardId) {
   // Reference to scenes collection
   const scenesRef = collection(

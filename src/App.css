@@ -49,9 +49,9 @@
 
 
 
-/* @media (max-width: 1023px) {
+@media (max-width: 1023px) {
   #root::before {
-    content: "Please use a larger screen to access this application.";
+    content: "Please use a larger screen (1024px or higher) for proper functioning of this application.";
     display: block;
     font-size: 1.5rem;
     color: red;
@@ -62,7 +62,7 @@
   #root {
     display: none;
   }
-} */
+}
 
 #root {
   display: block;
