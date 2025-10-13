@@ -11,7 +11,13 @@ import {
 	doc,
 } from 'firebase/firestore'
 
-// Update Storyboard with the number of characters
+/**
+ * Creates a character document on the database
+ *
+ * @param {Integer or String} participantId - Participant ID for which the empty character needs to be created
+ * @param {Integer or String} storyboardId - Storyboard ID for which the empty character needs to be created
+ * @param {Integer or String} characterId - Character ID for the empty character
+ */
 export async function createEmptyCharacter(participantId, storyboardId, characterId) {
 	try {
 		const ref = doc(
@@ -27,13 +33,17 @@ export async function createEmptyCharacter(participantId, storyboardId, characte
 			selected_image: null,
 			created_at: new Date().toISOString(),
 		})
-		console.log(`Character ${characterId} created for storyboard ${storyboardId}`)
 	} catch (err) {
 		console.error('Error creating character:', err)
 	}
 }
 
-// Fetch the number of characters for a specific participant and storyboard
+/**
+ * Returns the number of characters that are present
+ *
+ * @param {Integer or String} participantId - Participant ID for which the empty character needs to be created
+ * @param {Integer or String} storyboardId - Storyboard ID for which the empty character needs to be created
+ */
 export async function fetchCharacterCount(participantId, storyboardId) {
 	try {
 		const charsRef = collection(
@@ -52,7 +62,19 @@ export async function fetchCharacterCount(participantId, storyboardId) {
 	}
 }
 
-// Upload the character image
+/**
+ * Uploads the character information and image to the database
+ *
+ * @param {file} file - character image that needs to be uploaded
+ * @param {Integer or String} participantId - Participant ID for which the character image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the empty character needs to be created
+ * @param {Integer or String} characterId - Character ID for the empty character
+ * @param {String} fullPrompt - full prompt (including prompt engineering) that was used to generate the image (file)
+ * @param {String} prompt - prompt as provided by the user that was used to generate the image (file)
+ * @param {String} charDescription - Description of the character's image that is getting stored
+ * @param {Boolean} selected - represents if this image for the characterId is the final image selected
+ * @returns {String} - downloadURL which is a public URL to access the image
+ */
 export async function uploadCharAndSaveMetadata(
 	file,
 	participantId,
@@ -114,8 +136,6 @@ export async function uploadCharAndSaveMetadata(
 			charDescription,
 			createdAt: new Date().toISOString(),
 		})
-
-		console.log(`Image ${nextImageId} uploaded for character ${characterId}`)
 		return downloadURL
 	} catch (error) {
 		console.error('Error uploading image and saving metadata:', error)
@@ -123,7 +143,14 @@ export async function uploadCharAndSaveMetadata(
 	}
 }
 
-// Fetches all the character images created for the specific character in the storyboard
+/**
+ * Returns the number of characters that are present
+ *
+ * @param {Integer or String} participantId - Participant ID for which the empty character needs to be created
+ * @param {Integer or String} storyboardId - Storyboard ID for which the empty character needs to be created
+ * @param {Integer or String} characterId - Character ID for the empty character
+ * @returns {charImg[]} - List of characters
+ */
 export async function fetchAllCharImages(participantId, storyboardId, characterId) {
 	const charsRef = collection(
 		db,
@@ -157,7 +184,13 @@ export async function fetchAllCharImages(participantId, storyboardId, characterI
 	return [...results]
 }
 
-// Fetches all the character images which are the selected image for the specific character in the storyboard
+/**
+ * Fetches all the character images which are the selected image for the specific character in the storyboard
+ *
+ * @param {Integer or String} participantId - Participant ID for which the empty character needs to be created
+ * @param {Integer or String} storyboardId - Storyboard ID for which the empty character needs to be created
+ * @returns {charImg[]} - List of character images that are selected for each  character
+ */
 export async function fetchAllSelectedChars(participantId, storyboardId) {
 	const charsRef = collection(
 		db,
@@ -216,11 +249,21 @@ export async function fetchAllSelectedChars(participantId, storyboardId) {
 		.map((char) => char.selectedImage)
 		.filter((img) => img !== null && img !== undefined)
 
-	// console.log('Selected characters:', charactersWithSelectedImages)
 	return selectedImages
 }
 
-// Upload the scene image
+/**
+ * Uploads the scene image created to the database
+ *
+ * @param {file} file - scene image that needs to be uploaded
+ * @param {Integer or String} participantId - Participant ID for which the scene image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the scene image needs to be uploaded
+ * @param {Integer or String} sceneId - Scene ID for the empty character
+ * @param {String} fullPrompt - full prompt (including prompt engineering) that was used to generate the image (file)
+ * @param {String} prompt - prompt as provided by the user that was used to generate the image (file)
+ * @param {Boolean} selected - Description of the character's image that is getting stored
+ * @returns {String} - downloadURL which is a public URL to access the image
+ */
 export async function uploadSceneImageAndSaveMetadata(
 	file,
 	participantId,
@@ -294,7 +337,14 @@ export async function uploadSceneImageAndSaveMetadata(
 	}
 }
 
-// fetch images for a specific participant, storyboard, and scene
+/**
+ * Uploads the scene image created to the database
+ *
+ * @param {Integer or String} participantId - Participant ID for which the scene image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the scene image needs to be uploaded
+ * @param {Integer or String} sceneId - Scene ID for the empty character
+ * @returns {sceneImg[]} - fetches all the scene images created for participantId, storyboardId, and sceneId
+ */
 export async function fetchSceneImages(participantId, storyboardId, sceneId) {
 	const imagesRef = collection(
 		db,
@@ -328,7 +378,13 @@ export async function fetchSceneImages(participantId, storyboardId, sceneId) {
 	return [...results]
 }
 
-// Sets all images specified by participantId, storyboardId, and sceneId as unselected
+/**
+ * Sets all images specified by participantId, storyboardId, and sceneId as unselected
+ *
+ * @param {Integer or String} participantId - Participant ID for which the scene image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the scene image needs to be uploaded
+ * @param {Integer or String} sceneId - Scene ID for the empty character
+ */
 export async function setAllImagesUnselected(participantId, storyboardId, sceneId) {
 	try {
 		const q = query(
@@ -355,8 +411,14 @@ export async function setAllImagesUnselected(participantId, storyboardId, sceneI
 	}
 }
 
-// Sets the image specified by imageId as selected for the given sceneId
-// unselects any previously selected image for the same participant, storyboard, and scene
+/**
+ * Sets all images specified by participantId, storyboardId, and sceneId as unselected
+ *
+ * @param {Integer or String} participantId - Participant ID for which the scene image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the scene image needs to be uploaded
+ * @param {Integer or String} sceneId - Scene ID for the empty character
+ * @param {Integer} imageId - Image ID which needs to be set to selected
+ */
 export async function setSelectedSceneImage(participantId, storyboardId, sceneId, imageId) {
 	try {
 		const charsRef = collection(
@@ -372,8 +434,6 @@ export async function setSelectedSceneImage(participantId, storyboardId, sceneId
 		const q = query(charsRef)
 
 		const snapshot = await getDocs(q)
-
-		console.log(snapshot.docs)
 
 		for (const docSnap of snapshot.docs) {
 			const data = docSnap.data()
@@ -397,16 +457,20 @@ export async function setSelectedSceneImage(participantId, storyboardId, sceneId
 				})
 			}
 		}
-
-		console.log(`Image ${imageId} is now selected.`)
 	} catch (error) {
 		console.error('Error setting selected image:', error)
 		throw error
 	}
 }
 
-// Sets the image specified by imageId as selected for the given charId
-// unselects any previously selected image for the same participant, storyboard, and scene
+/**
+ * Sets the image specified by imageId as selected for the given charId; unselects any previously selected image for the same participant, storyboard, and scene
+ *
+ * @param {Integer or String} participantId - Participant ID for which the scene image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the scene image needs to be uploaded
+ * @param {Integer or String} sceneId - Scene ID for the empty character
+ * @param {Integer} imageId - Image ID which needs to be set to selected
+ */
 export async function setSelectedCharImage(participantId, storyboardId, charId, imageId) {
 	try {
 		const charsRef = collection(
@@ -422,8 +486,6 @@ export async function setSelectedCharImage(participantId, storyboardId, charId, 
 		const q = query(charsRef)
 
 		const snapshot = await getDocs(q)
-
-		console.log(snapshot.docs)
 
 		for (const docSnap of snapshot.docs) {
 			const data = docSnap.data()
@@ -447,15 +509,19 @@ export async function setSelectedCharImage(participantId, storyboardId, charId, 
 				})
 			}
 		}
-
-		console.log(`Image ${imageId} is now selected.`)
 	} catch (error) {
 		console.error('Error setting selected image:', error)
 		throw error
 	}
 }
 
-// fetch scene images for a specific participant, storyboard, and if selected
+/**
+ * Fetch scene images for a specific participant, storyboard, and if selected
+ *
+ * @param {Integer or String} participantId - Participant ID for which the scene image needs to be uploaded
+ * @param {Integer or String} storyboardId - Storyboard ID for which the scene image needs to be uploaded
+ * @returns {img[]} - fetches all scene images that are selected
+ */
 export async function fetchSceneImagesBySelection(participantId, storyboardId) {
 	// Reference to scenes collection
 	const scenesRef = collection(

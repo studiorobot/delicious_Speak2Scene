@@ -270,18 +270,3 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
-
-.react-multiple-carousel__arrow {
-  z-index: 10;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: red !important;
-}
-
-.react-multiple-carousel__arrow--left {
-  left: -20px;
-}
-
-.react-multiple-carousel__arrow--right {
-  right: -20px;
-}
