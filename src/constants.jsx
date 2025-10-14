@@ -41,6 +41,7 @@ export const HOT_WORDS = {
   SCROLL_UP: 'scroll up',
   SCROLL_DOWN: 'scroll down',
   ADD_CHARACTER: 'add character',
+  CHANGE_IMAGE: 'change image'
 }
 
 export const endpoint_image_generation = 'https://api.openai.com/v1/images/generations'

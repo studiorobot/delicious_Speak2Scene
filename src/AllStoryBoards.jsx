@@ -138,7 +138,7 @@ export function AllStoryBoards({ storyboards }) {
       }
     }
     fetchData()
-  }, [])
+  }, [currentStoryboard])
 
   function backFunc() {
     setCurrentStoryboard(null)

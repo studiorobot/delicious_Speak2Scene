@@ -270,7 +270,7 @@ export function StoryBoard({ participant, storyboard, onBack }) {
           <div className="container-lr">
             <div
               style={{
-                maxWidth: '80vw',
+                maxWidth: '75vw',
                 overflow: 'hidden',
                 marginTop: '10px',
               }}
