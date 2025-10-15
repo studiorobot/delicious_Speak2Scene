@@ -166,7 +166,7 @@ h1 {
 }
 
 .right {
-  border-left: #dc267f 5px solid;
+  border-left: #000 5px dashed;
   display: inline-block;
   width: 21%;
   /* background-color: #C6E2FF; */
@@ -190,9 +190,18 @@ h1 {
 }
 
 .box {
+  display: block;
+  width: 50%;
   border-radius: 10px;
-  border: #648fff 5px solid;
+  border: #000 2px solid;
   margin-left: 10px;
+}
+
+.boxMini {
+  width: 80%;
+  margin-left: 10px;
+  background-color: #FFC20A;
+  border: #FFC20A 5px solid;
 }
 
 .rightIS {
@@ -254,19 +263,17 @@ body {
 .scene-button1 {
   margin-top: 0.75rem;
   padding: 0.5rem 1rem;
-  background-color: #ffb000;
-  color: white;
-  border: none;
+  border-color: #000;
+  color: #000;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .scene-button2 {
-  margin-top: 0.75rem;
+  margin-top: 4px;
   padding: 0.5rem 1rem;
-  background-color: #dc267f;
-  color: white;
-  border: none;
+  border-color: #000;
+  color: #000;
   border-radius: 4px;
   cursor: pointer;
 }
