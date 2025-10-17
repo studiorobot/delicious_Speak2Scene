@@ -9,9 +9,11 @@
 ```
 delicious_userstudy-app/
 │
+├── server/
+│   ├── server.js                           # Server Routes to make OpenAI API calls
 ├── src/                  
 │   ├── api/              
-│       └── openai.jsx                      # Function definitions interacting with OpenAI API
+│       └── openai.jsx                      # Frontend function defintions to interact with OpenAI API through `server.js`
 │   ├── firebase/
 │       ├── firebase.jsx                    # Firebase configuration file
 │       └── firebase_helper_functions.jsx   # Function definitions interacting with Firebase DB
@@ -43,21 +45,28 @@ delicious_userstudy-app/
 ```
 
 ### Requirements
+#### Node
+
+
 #### OpenAI API
-You will need an OpenAI API key which you can acquire through the OpenAI dashboard: https://platform.openai.com/docs/overview. Make sure to add enough funds into your account.
+You will need an OpenAI API key which you can acquire through the OpenAI dashboard: https://platform.openai.com/docs/quickstart. Make sure to add enough funds into your account.
 
 #### Firebase
-- You will need to create a project on Firebase
-  - Feel free to use `test` mode
-- You will need access to Storage within the app
-- You will need access to Firestore Database within the app
-You can follow the instructions as outlined here: https://firebase.google.com/docs/firestore/quickstart#create
+1. Create a Firebase project. Follow the instructions: https://firebase.google.com/docs/web/setup#create-project
+2. Note that you will need to be on Spark Plan
+3. Create a Firebase app within the project. Make sure to also setup Firebase Hosting for the app. While registering the app, you will come across a step that has `const firebaseConfig = {...}`. Make sure to record the information that is present there in a safe place on your computer. You will need it for (setting up the .env)[#env-file]. Finish all the steps and proceed to the console.
+4. In the console, create a Firebase storage. You will find this under `Product Categories > Build`. You will need the pay-as-you go blaze plan.
+5. Create a database: `Product Categories > Firestore Database`. Default options should work. Ensure that you start in `test` mode.
 
 ### Installation
 1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_userstudy-app.git` and For https: `git clone https://github.com/studiorobot/delicious_userstudy-app.git` to a local folder of your choice.
-2. Change directory into the app.
-3. Create a `.env` file by following the instructions [here](#env-file) based on steps followed above.
-4. 
+2. Change directory into the app: `cd delicious_Speak2Scene`
+3. Install all the relevant packages: `npm install`
+4. Perform: `npm run dev`. This should start a server and the app on your computer with a localhost url. Open the localhost url in your web browser. It should open the app with a [researcher] screen. You can enter a name and it will take you to the landing page. This step simply ensures that you have cloned your repository and installed the packages correctly.
+
+#### Getting connected to database + ensuring the app works with OpenAI API
+1. Create a `.env` file within the `delicious_userstudy-app` folder. Follow the instructions outlined [here](#env-file). Refer to (Open AI)[#OpenAI-API] and (Firebase)[#Firebase] sections to get the API keys and other details.
+2. Perform `npm run dev` and it should start the app. 
 
 ### `.env` file
 Make sure to create a `.env` file in the root folder and add the following: 
@@ -72,6 +81,7 @@ VITE_FIREBASE_PROJECT_ID=<YOUR FIREBASE PROJECT ID>
 VITE_FIREBASE_STORAGE_BUCKET=<YOUR FIREBASE STORAGE BUCKET>
 VITE_FIREBASE_MESSAGING_SENDER_ID=<YOUR FIREBASE MESSAGEING SENDER ID>
 VITE_FIREBASE_APP_ID=<YOUR FIREBASE APP ID>
+VITE_FIREBASE_STORAGE_FOLDER=<FOLDER NAME YOU WANT TO STORE IMAGES IN DATASTORE>
 ```
 
 ### `constants.jsx` file
