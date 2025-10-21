@@ -59,7 +59,7 @@ You will need an OpenAI API key which you can acquire through the OpenAI dashboa
 5. Create a database: `Product Categories > Firestore Database`. Default options should work. Ensure that you start in `test` mode.
 
 ### Installation
-1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_userstudy-app.git` and For https (use this if you don't have ssh configured with GitHub): `git clone https://github.com/studiorobot/delicious_userstudy-app.git` to a local folder of your choice.
+1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_Speak2Scene.git` and For https (use this if you don't have ssh configured with GitHub): `git clone https://github.com/studiorobot/delicious_Speak2Scene.git` to a local folder of your choice.
 2. Change directory into the app: `cd delicious_Speak2Scene`
 3. Install all the relevant packages: `npm install`
 4. Perform: `npm run dev`. This should start a server and the app on your computer with a localhost url. Open the localhost url in your web browser. It should open the app with a [researcher] screen. You can enter a name and it will take you to the landing page. This step simply ensures that you have cloned your repository and installed the packages correctly.
