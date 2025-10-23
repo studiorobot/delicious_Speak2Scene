@@ -27,8 +27,6 @@ delicious_Speak2Scene/
 │   ├── App.jsx
 │   ├── Character.jsx
 │   ├── IndividualScene.jsx
-│   ├── Researcher.jsx
-│   ├── ResearcherParticipantView.jsx
 │   ├── Storyboard.jsx
 │   ├── Welcome.jsx
 │   ├── constants.jsx                       # Constants (storyboard, keywords, endpoints for OpenAI)
