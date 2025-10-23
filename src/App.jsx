@@ -3,8 +3,6 @@ import { Routes, Route } from 'react-router-dom'
 
 import { WelcomeScreen } from './Welcome'
 import { AllStoryBoards } from './AllStoryBoards'
-import { Researcher } from './Researcher'
-import { ResearcherParticipantView } from './ResearcherParticipantView'
 import { allStoryboards } from './constants'
 
 // Style imports
@@ -47,11 +45,6 @@ function App() {
 		<Routes>
 			<Route path="/" element={<WelcomeScreen />} />
 			<Route path="/:participant" element={<AllStoryBoards storyboards={allStoryboards} />} />
-			<Route path="/researcher" element={<Researcher />} />
-			<Route
-				path="/researcher/:participant"
-				element={<ResearcherParticipantView storyboards={allStoryboards} />}
-			/>
 		</Routes>
 	)
 }
