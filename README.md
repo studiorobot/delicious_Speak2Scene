@@ -7,7 +7,7 @@
 
 ### Repository Structure
 ```
-delicious_userstudy-app/
+delicious_Speak2Scene/
 │
 ├── server/
 │   ├── server.js                           # Server Routes to make OpenAI API calls
@@ -115,7 +115,7 @@ VITE_FIREBASE_STORAGE_FOLDER=<FOLDER NAME YOU WANT TO STORE IMAGES IN DATASTORE>
 ```
 
 ### `constants.jsx` file
-Edit `constants.jsx` to your specific application. Fill out the `allStoryboards` section with your specific storyboards and scenes pertaining to them.
+Edit `delicious_Speak2Scene/constants.jsx` to your specific application. Fill out the `allStoryboards` section with your specific storyboards and scenes pertaining to them.
 ```
 export const allStoryboards = [
   {
