@@ -1,53 +1,38 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 
-import { ROBOT_TYPE } from './constants'
 // Speech recognition imports
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
-import { parseVoiceCommand } from './voiceParser'
+import { parseVoiceCommand } from './voice/voiceParser'
 
 // OpenAI API imports
-import {
-	generateImage,
-	generateCharacterImage,
-	generateRobotWithRobotReference,
-	generateSceneWithCharacterRobotReference,
-} from './api/openai'
+import { generateSceneWithCharacterReference } from './api/openai'
 
 // Firebase imports
 import {
-	uploadImageAndSaveMetadata,
-	setSelectedImage,
+	uploadSceneImageAndSaveMetadata,
+	setSelectedSceneImage,
 	setAllImagesUnselected,
-	fetchCharacter,
-	fetchRobot,
-	fetchImages,
+	fetchSceneImages,
+	fetchAllSelectedChars,
 } from './firebase/firebase_helper_functions'
 
 // Style imports
-import './App.css'
+import './styles/App.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import {
+	faCircleLeft,
+	faArrowRight,
+	faCircleRight,
+	faCircleInfo,
+} from '@fortawesome/free-solid-svg-icons'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 
-const STATUS = {
-	WAITING: 'Waiting',
-	LISTENING: 'Listening...',
-	GENERATING_IMAGE: 'Generating image',
-}
-
-const HOT_WORDS = {
-	START: 'start listening',
-	STOP: 'stop listening',
-	CLEAR_TRANSCRIPT: 'clear transcript',
-	CHANGE_IMAGE: 'change image',
-	GO_BACK: 'go back',
-	SCROLL_RIGHT: 'scroll right',
-	SCROLL_LEFT: 'scroll left',
-}
+// Constants
+import { STATUS, HOT_WORDS } from './constants'
 
 export function IndividualScene({ participant, storyboard, scene, onBack }) {
 	const [imageUrl, setImageUrl] = useState(null)
@@ -56,9 +41,9 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 	const [images, setImages] = useState([])
 	const [loadingImg, setLoadingImg] = useState(false)
 	const [progress, setProgress] = useState(0)
+	const [showInfo, setShowInfo] = useState(false)
 
-	const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
-		useSpeechRecognition()
+	const { transcript, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition()
 
 	const responsive = {
 		superLargeDesktop: {
@@ -88,7 +73,6 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 			continuous: true,
 			language: 'en-US',
 		})
-		console.log('listening: ' + listening)
 		resetTranscript()
 	}, [])
 
@@ -96,10 +80,8 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 		const lower = transcript.toLowerCase().trim()
 
 		if (!lower) return
-		console.log('Transcript:', lower)
 
 		if (status === STATUS.WAITING && lower.includes(HOT_WORDS.START)) {
-			console.log('Start triggered')
 			setStatus(STATUS.LISTENING)
 			setCaptured('')
 			resetTranscript()
@@ -109,11 +91,8 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 			lower.includes(HOT_WORDS.GO_BACK) &&
 			lower.includes(HOT_WORDS.STOP)
 		) {
-			console.log('Go back triggered')
-			console.log(transcript)
 			resetTranscript()
-			console.log(transcript)
-			setStatus(STATUS.WAITING);
+			setStatus(STATUS.WAITING)
 			onBack()
 			return
 		} else if (
@@ -121,8 +100,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 			lower.includes(HOT_WORDS.SCROLL_RIGHT) &&
 			lower.includes(HOT_WORDS.STOP)
 		) {
-			console.log('Scroll right triggered')
-			const rightArrow = document.querySelector('.react-multiple-carousel__arrow--right')
+			const rightArrow = document.querySelector('.carousel-right-arrow')
 			if (rightArrow) {
 				rightArrow.click()
 			}
@@ -133,22 +111,28 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 			lower.includes(HOT_WORDS.SCROLL_LEFT) &&
 			lower.includes(HOT_WORDS.STOP)
 		) {
-			console.log('Scroll left triggered')
-			const leftArrow = document.querySelector('.react-multiple-carousel__arrow--left')
+			const leftArrow = document.querySelector('.carousel-left-arrow')
 			if (leftArrow) {
 				leftArrow.click()
 			}
 			setStatus(STATUS.WAITING)
 			resetTranscript()
+		} else if (
+			status === STATUS.LISTENING &&
+			lower.length <= 25 &&
+			(lower.includes(HOT_WORDS.HELP) || lower.includes(HOT_WORDS.HELP_CLOSE)) &&
+			lower.includes(HOT_WORDS.STOP)
+		) {
+			onInfo()
+			setStatus(STATUS.WAITING)
+			resetTranscript()
 		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
-			console.log('Stop triggered')
 			let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
 			setCaptured(cleanedTranscript)
 			let parsed = parseVoiceCommand(cleanedTranscript)
-			console.log('Parsed command:', parsed)
 			const updateImageAndRefresh = async () => {
 				if (parsed && parsed.context === HOT_WORDS.CHANGE_IMAGE) {
-					await setSelectedImage(
+					await setSelectedSceneImage(
 						participant,
 						storyboard.id,
 						scene.id,
@@ -165,7 +149,6 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 
 			updateImageAndRefresh()
 		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.CLEAR_TRANSCRIPT)) {
-			console.log('clear triggered')
 			resetTranscript()
 		}
 	}, [status, transcript, images])
@@ -184,37 +167,18 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							return prev + 1 + Math.random() * 0.3
 						})
 					}, 500)
-					console.log('Generating image for:', captured)
 					let url = null
 					let imgPrompt = captured
-					if (storyboard.id === 0) {
-						// character creation
-						let imgDetails = await generateCharacterImage(captured)
-						url = imgDetails.imageUrl
-						imgPrompt = imgDetails.prompt
-					} else if (storyboard.id === 0.1) {
-						// robot creation
-						let imgDetails = await generateRobotWithRobotReference(captured)
-						url = imgDetails.imageUrl
-						imgPrompt = imgDetails.prompt
-					} else {
-						const characterImageURL = await fetchCharacter(participant)
-						const useRobotImage = storyboard.robot
-						let robotImageURL = null
-						if (useRobotImage) {
-							robotImageURL = await fetchRobot(participant)
-						}
-						console.log('avatarImageURL', characterImageURL[0].downloadURL)
-						let imgDetails = await generateSceneWithCharacterRobotReference(
-							captured,
-							characterImageURL[0],
-							useRobotImage ? ROBOT_TYPE.KINOVA : ROBOT_TYPE.NONE
-							// robotImageURL == null ? null : robotImageURL[0]
-						)
-						console.log('here')
-						url = imgDetails.imageUrl
-						imgPrompt = imgDetails.prompt
-					}
+					const all_selected_chars = await fetchAllSelectedChars(
+						participant,
+						storyboard.id
+					)
+					let imgDetails = await generateSceneWithCharacterReference(
+						captured,
+						all_selected_chars
+					)
+					url = imgDetails.imageUrl
+					imgPrompt = imgDetails.prompt
 					if (url) {
 						setImageUrl(url)
 
@@ -232,7 +196,7 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 						// make sure to set all other images as unselected
 						await setAllImagesUnselected(participantId, storyboardId, sceneId)
 						// set the current image generated as selected
-						await uploadImageAndSaveMetadata(
+						await uploadSceneImageAndSaveMetadata(
 							file,
 							participantId,
 							storyboardId,
@@ -242,7 +206,6 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							true
 						)
 						fetchAllImages()
-						console.log('Image uploaded and referenced in Firestore')
 					}
 					setProgress(100)
 					setStatus(STATUS.WAITING)
@@ -267,157 +230,156 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 	}, [storyboard, scene])
 
 	const fetchAllImages = async () => {
-		console.log(storyboard.id, scene.id)
-		let results = await fetchImages(participant, storyboard.id, scene.id)
+		let results = await fetchSceneImages(participant, storyboard.id, scene.id)
 		setImages(results)
-		console.log('Fetched images:', results)
+	}
+
+	function onInfo() {
+		setShowInfo(!showInfo)
 	}
 
 	return (
-		<div style={{ border: '5px dotted #648fff', borderRadius: '8px', padding: '10px' }}>
-			<div className="container-lr">
-				<div className="leftIS">
-					<div className="status-bar">
-						<FontAwesomeIcon
-							className="go-back-button"
-							onClick={onBack}
-							icon={faCircleLeft}
-						/>
-						{storyboard.id === 0 ? (
-							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
-								Create your Avatar
-							</h4>
-						) : storyboard.id === 0.1 ? (
-							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
-								Create your Robot
-							</h4>
-						) : storyboard.type === 'Moments' ? (
-							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
-								Moment: {scene.title}
-							</h4>
-						) : (
-							<h4 className="pagename" style={{ border: '5px dotted #648fff' }}>
-								Scene {scene.id}: {scene.title}
-							</h4>
-						)}
-						<p className="participant">
-							<strong>Participant:</strong> {participant}
+		<div style={{ border: '5px dotted #000', borderRadius: '8px', padding: '10px' }}>
+			<div className="status-bar">
+				<FontAwesomeIcon className="go-back-button" onClick={onBack} icon={faCircleLeft} />
+				<h4 className="pagename" style={{ border: '5px dotted #000' }}>
+					Scene {scene.id}: {scene.title}
+				</h4>
+				<p className="participant">
+					<strong>Participant:</strong> {participant}
+				</p>
+				{/* <p className='voice'><strong>Voice On:</strong> {listening ? 'Yes' : 'No'}</p> */}
+				<p
+					className="status"
+					style={{
+						backgroundColor: status === STATUS.LISTENING ? '#0BDA51' : 'white',
+					}}
+				>
+					<strong>Status:</strong> {status}
+				</p>
+				<button onClick={onInfo} className="participant">
+					<FontAwesomeIcon icon={faCircleInfo} style={{ marginRight: '10px' }} />
+					<u>start listening</u>{' '}
+					<FontAwesomeIcon
+						icon={faArrowRight}
+						style={{ marginLeft: '10px', marginRight: '10px' }}
+					/>{' '}
+					<i>help</i>{' '}
+					<FontAwesomeIcon
+						icon={faArrowRight}
+						style={{ marginLeft: '10px', marginRight: '10px' }}
+					/>{' '}
+					<u>stop listening</u>
+				</button>
+			</div>
+			{showInfo && (
+				<div className="box fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+					<div className="bg-white p-6 rounded-2xl shadow-lg max-w-sm w-11/12 relative">
+						<p style={{ marginLeft: '10px' }}>
+							<FontAwesomeIcon icon={faCircleInfo} style={{ marginRight: '10px' }} />
+							<u>start listening</u> <FontAwesomeIcon icon={faArrowRight} />{' '}
+							<i
+								style={{
+									border: '#FFC20A 5px solid',
+									padding: '2px',
+									backgroundColor: '#FFC20A',
+								}}
+							>
+								Action
+							</i>{' '}
+							<FontAwesomeIcon icon={faArrowRight} /> <u>stop listening</u>
 						</p>
-						{/* <p className='voice'><strong>Voice On:</strong> {listening ? 'Yes' : 'No'}</p> */}
-						<p
-							className="status"
-							style={{
-								backgroundColor: status === STATUS.LISTENING ? '#0BDA51' : 'white',
-							}}
-						>
-							<strong>Status:</strong> {status}
-						</p>
+						<ul className="boxMini">
+							<li>
+								<i>[describe scene] to generate image</i>
+							</li>
+							<li>
+								<i>
+									<u>clear transcript</u> to clear and restart
+								</i>
+							</li>
+							<li>
+								<i>
+									<u>change image to [number]</u> to change selected image
+								</i>
+							</li>
+							<li>
+								<i>
+									<u>go back</u> to storyboard
+								</i>
+							</li>
+							<li>
+								<i>
+									<u>scroll [left/right]</u> to view hidden images
+								</i>
+							</li>
+						</ul>
 					</div>
+				</div>
+			)}
 
-					{status === STATUS.LISTENING ? (
-						<>
-							<p>
-								<strong>Transcript:</strong> {transcript}
-							</p>
-							{/* <p>
+			{status === STATUS.LISTENING ? (
+				<>
+					<p>
+						<strong>Transcript:</strong> {transcript}
+					</p>
+					{/* <p>
 								<strong>Captured Prompt:</strong> {captured}
 							</p> */}
-						</>
-					) : (
-						''
-					)}
-					{!imageUrl && loadingImg && (
-						<div>
-							<div
-								style={{
-									display: 'inline-block',
-									width: '150px',
-									height: '150px',
-									border: '1px solid black',
-									borderRadius: '6px',
-									textAlign: 'center',
-								}}
-								className="leftInProgress"
-							>
-								<p>{STATUS.GENERATING_IMAGE}</p>
-								<Box
-									sx={{
-										display: 'flex',
-										justifyContent: 'center',
-										alignItems: 'center',
-									}}
-								>
-									{loadingImg && progress < 100 && (
-										<CircularProgress variant="determinate" value={progress} />
-									)}
-								</Box>
-							</div>
-							<div className="rightInProgress">
-								<p>
-									<u>Captured prompt: </u>
-									{captured}
-								</p>
-							</div>
-						</div>
-					)}
-					{imageUrl && (
-						<div>
-							<p style={{ marginTop: '0px' }}>Current Generated Image</p>
-							<img
-								src={imageUrl}
-								alt="Generated from voice prompt"
-								style={{
-									width: '100px',
-									height: 'auto',
-									objectFit: 'cover',
-									borderRadius: '12px',
-									boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-								}}
-							/>
-						</div>
-					)}
-				</div>
-				<div className="rightIS">
-					<p style={{ marginLeft: '10px' }}>
-						<u>start listening</u> <FontAwesomeIcon icon={faArrowRight} />{' '}
-						<i
-							style={{
-								borderRadius: '10px',
-								border: '#648fff 5px solid',
-								padding: '2px',
+				</>
+			) : (
+				''
+			)}
+			{!imageUrl && loadingImg && (
+				<div>
+					<div
+						style={{
+							display: 'inline-block',
+							width: '150px',
+							height: '150px',
+							border: '1px solid black',
+							borderRadius: '6px',
+							textAlign: 'center',
+						}}
+						className="leftInProgress"
+					>
+						<p>{STATUS.GENERATING_IMAGE}</p>
+						<Box
+							sx={{
+								display: 'flex',
+								justifyContent: 'center',
+								alignItems: 'center',
 							}}
 						>
-							Action
-						</i>{' '}
-						<FontAwesomeIcon icon={faArrowRight} /> <u>stop listening</u>
-					</p>
-					<ul className="box">
-						<li>
-							<i>[describe scene] to generate image</i>
-						</li>
-						<li>
-							<i>
-								<u>clear transcript</u> to clear and restart
-							</i>
-						</li>
-						<li>
-							<i>
-								<u>change image to [number]</u> to change selected image
-							</i>
-						</li>
-						<li>
-							<i>
-								<u>go back</u> to storyboard
-							</i>
-						</li>
-						<li>
-							<i>
-								<u>scroll [left/right]</u> to view hidden images
-							</i>
-						</li>
-					</ul>
+							{loadingImg && progress < 100 && (
+								<CircularProgress variant="determinate" value={progress} />
+							)}
+						</Box>
+					</div>
+					<div className="rightInProgress">
+						<p>
+							<u>Captured prompt: </u>
+							{captured}
+						</p>
+					</div>
 				</div>
-			</div>
+			)}
+			{imageUrl && (
+				<div>
+					<p style={{ marginTop: '0px' }}>Current Generated Image</p>
+					<img
+						src={imageUrl}
+						alt="Generated from voice prompt"
+						style={{
+							width: '100px',
+							height: 'auto',
+							objectFit: 'cover',
+							borderRadius: '12px',
+							boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+						}}
+					/>
+				</div>
+			)}
 
 			<div style={{ maxWidth: '90vw', overflow: 'hidden' }}>
 				<Carousel
@@ -430,6 +392,66 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 					removeArrowOnDeviceType={[]}
 					customTransition="all 0.3s ease-in-out"
 					transitionDuration={300}
+					customLeftArrow={
+						<button
+							aria-label="Previous"
+							style={{
+								position: 'absolute',
+								left: 0,
+								top: '50%',
+								transform: 'translateY(-50%)',
+								backgroundColor: 'white',
+								border: '1px solid #ccc',
+								borderRadius: '50%',
+								padding: '6px',
+								cursor: 'pointer',
+								boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+								zIndex: 2,
+							}}
+							className="carousel-left-arrow"
+						>
+							<FontAwesomeIcon
+								className="go-back-button"
+								icon={faCircleLeft}
+								style={{
+									border: 'none',
+									background: 'transparent',
+									cursor: 'pointer',
+									marginBottom: '4px',
+								}}
+							/>
+						</button>
+					}
+					customRightArrow={
+						<button
+							aria-label="Next"
+							style={{
+								position: 'absolute',
+								right: 0,
+								top: '50%',
+								transform: 'translateY(-50%)',
+								backgroundColor: 'white',
+								border: '1px solid #ccc',
+								borderRadius: '50%',
+								padding: '6px',
+								cursor: 'pointer',
+								boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+								zIndex: 2,
+							}}
+							className="carousel-right-arrow"
+						>
+							<FontAwesomeIcon
+								className="go-back-button"
+								icon={faCircleRight}
+								style={{
+									border: 'none',
+									background: 'transparent',
+									cursor: 'pointer',
+									marginBottom: '4px',
+								}}
+							/>
+						</button>
+					}
 				>
 					{images.map((img) => (
 						<div
@@ -437,12 +459,11 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 							style={{
 								padding: '10px',
 								margin: '10px',
-								border:
-									img.selected === true ? '3px solid #648fff' : '1px solid #ccc',
+								border: img.selected === true ? '3px solid #000' : '1px solid #ccc',
 								borderRadius: '10px',
 								boxShadow:
 									img.selected === true
-										? '0 4px 12px #648fff'
+										? '0 4px 12px #000'
 										: '0 2px 8px rgba(0,0,0,0.1)',
 							}}
 						>
@@ -468,11 +489,10 @@ export function IndividualScene({ participant, storyboard, scene, onBack }) {
 								{img.selected === true && (
 									<div
 										style={{
-											color: '#648fff',
 											fontWeight: 'bold',
 										}}
 									>
-										Selected
+										SELECTED
 									</div>
 								)}
 								<p>

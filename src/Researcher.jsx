@@ -1,10 +1,10 @@
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // Firebase imports
 import { fetchAllParticipants } from './firebase/firebase_helper_functions'
 
 // Style imports
-import './App.css'
+import './styles/App.css'
 
 export function Researcher() {
 	const [participants, setParticipants] = useState([])

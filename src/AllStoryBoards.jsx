@@ -3,58 +3,38 @@ import { useParams } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import { StoryBoard } from './StoryBoard'
-import { IndividualScene } from './IndividualScene'
 
 // Speech recoginition imports
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
-import { parseVoiceCommand } from './voiceParser'
+import { parseVoiceCommand } from './voice/voiceParser'
 
 // Firebase imports
-import {
-	fetchCharacter,
-	fetchRobot,
-	fetchImagesBySelection,
-} from './firebase/firebase_helper_functions'
+import { fetchSceneImagesBySelection } from './firebase/firebase_helper_functions'
 
 // Style imports
-import './App.css'
+import './styles/App.css'
 import Carousel from 'react-multi-carousel'
 import 'react-multi-carousel/lib/styles.css'
+import fallbackImage from './styles/questionmark.jpg'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+	faCircleInfo,
+	faCircleRight,
+	faCircleLeft,
+	faArrowRight,
+} from '@fortawesome/free-solid-svg-icons'
 
-const STATUS = {
-	WAITING: 'Waiting',
-	LISTENING: 'Listening...',
-}
+// Constants
+import { STATUS, HOT_WORDS } from './constants'
 
-const HOT_WORDS = {
-	START: 'start listening',
-	STOP: 'stop listening',
-	CLEAR_TRANSCRIPT: 'clear transcript',
-	CHARACTER: 'avatar',
-	ROBOT: 'robot',
-	TRIAL: 'trial',
-	STORYBOARD: 'storyboard',
-	MOMENTS: 'moments',
-	SCROLL_RIGHT: 'scroll right',
-	SCROLL_LEFT: 'scroll left',
-}
-/*
-View: All Storyboards (as little cards) 
-- "go into storyboard"
-*/
 export function AllStoryBoards({ storyboards }) {
 	const [status, setStatus] = useState(STATUS.WAITING)
-	const [captured, setCaptured] = useState('')
 	const [currentStoryboard, setCurrentStoryboard] = useState(null)
-	const [character, setCharacter] = useState(false)
-	const [robot, setRobot] = useState(false)
-	const [characterImage, setCharacterImage] = useState(null)
-	const [robotImage, setRobotImage] = useState(null)
 	const [selectedImages, setSelectedImages] = useState({})
 	const participant = useParams().participant
+	const [showInfo, setShowInfo] = useState(false)
 
-	const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
-		useSpeechRecognition()
+	const { transcript, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition()
 
 	const responsive = {
 		superLargeDesktop: {
@@ -84,7 +64,6 @@ export function AllStoryBoards({ storyboards }) {
 			continuous: true,
 			language: 'en-US',
 		})
-		console.log('listening: ' + listening)
 		resetTranscript()
 	}, [currentStoryboard])
 
@@ -94,81 +73,15 @@ export function AllStoryBoards({ storyboards }) {
 		if (!lower) return
 
 		if (status === STATUS.WAITING && lower.includes(HOT_WORDS.START)) {
-			console.log('Start triggered')
 			setStatus(STATUS.LISTENING)
-			setCaptured('')
 			resetTranscript()
-			return
-		} else if (
-			status === STATUS.LISTENING &&
-			lower.includes(HOT_WORDS.CHARACTER) &&
-			lower.includes(HOT_WORDS.STOP) &&
-			!currentStoryboard &&
-			!robot
-		) {
-			console.log('Character creation triggered')
-			setStatus(STATUS.WAITING)
-      setCharacter(true)
-      resetTranscript()
-			return
-		} else if (
-			status === STATUS.LISTENING &&
-			lower.includes(HOT_WORDS.ROBOT) &&
-			lower.includes(HOT_WORDS.STOP) &&
-			!currentStoryboard &&
-			!character
-		) {
-			console.log('Robot creation triggered')
-			setStatus(STATUS.WAITING)
-      setRobot(true)
-      resetTranscript()
-			return
-		} else if (
-			status === STATUS.LISTENING &&
-			lower.includes(HOT_WORDS.TRIAL) &&
-			lower.includes(HOT_WORDS.STOP) &&
-			!robot &&
-			!character
-		) {
-			console.log('Robot creation triggered')
-			const selected = storyboards.find((sb) => sb.id === 1)
-			setStatus(STATUS.WAITING)
-      setCurrentStoryboard(selected)
-      resetTranscript()
-			return
-		} else if (
-			status === STATUS.LISTENING &&
-			lower.includes(HOT_WORDS.STORYBOARD) &&
-			lower.includes(HOT_WORDS.STOP) &&
-			!robot &&
-			!character
-		) {
-			console.log('Robot creation triggered')
-			const selected = storyboards.find((sb) => sb.id === 2)
-			setStatus(STATUS.WAITING)
-      setCurrentStoryboard(selected)
-      resetTranscript()
-			return
-		} else if (
-			status === STATUS.LISTENING &&
-			lower.includes(HOT_WORDS.MOMENTS) &&
-			lower.includes(HOT_WORDS.STOP) &&
-			!robot &&
-			!character
-		) {
-			console.log('Robot creation triggered')
-			const selected = storyboards.find((sb) => sb.id === 3)
-			setStatus(STATUS.WAITING)
-      setCurrentStoryboard(selected)
-      resetTranscript()
 			return
 		} else if (
 			status === STATUS.LISTENING &&
 			lower.includes(HOT_WORDS.SCROLL_RIGHT) &&
 			lower.includes(HOT_WORDS.STOP)
 		) {
-			console.log('Scroll right triggered')
-			const rightArrow = document.querySelector('.react-multiple-carousel__arrow--right')
+			const rightArrow = document.querySelector('.carousel-right-arrow')
 			if (rightArrow) {
 				rightArrow.click()
 			}
@@ -179,63 +92,54 @@ export function AllStoryBoards({ storyboards }) {
 			lower.includes(HOT_WORDS.SCROLL_LEFT) &&
 			lower.includes(HOT_WORDS.STOP)
 		) {
-			console.log('Scroll left triggered')
-			const leftArrow = document.querySelector('.react-multiple-carousel__arrow--left')
+			const leftArrow = document.querySelector('.carousel-left-arrow')
 			if (leftArrow) {
 				leftArrow.click()
 			}
 			setStatus(STATUS.WAITING)
 			resetTranscript()
-		// } else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
-		// 	console.log('Stop triggered')
-		// 	let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
-		// 	setCaptured(cleanedTranscript)
-		// 	setStatus(STATUS.WAITING)
-		// 	if (cleanedTranscript && cleanedTranscript.length > 0 && !currentStoryboard) {
-		// 		console.log('Handling voice command:', cleanedTranscript)
-		// 		setStatus(STATUS.WAITING)
-		// 		handleVoiceCommand(cleanedTranscript)
-		// 	}
-		// 	resetTranscript()
+		} else if (
+			status === STATUS.LISTENING &&
+			lower.length <= 25 &&
+			(lower.includes(HOT_WORDS.HELP) || lower.includes(HOT_WORDS.HELP_CLOSE)) &&
+			lower.includes(HOT_WORDS.STOP)
+		) {
+			onInfo()
+			setStatus(STATUS.WAITING)
+			resetTranscript()
+		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.STOP)) {
+			let cleanedTranscript = transcript.split(HOT_WORDS.STOP)[0].trim()
+			setStatus(STATUS.WAITING)
+			if (cleanedTranscript && cleanedTranscript.length > 0 && !currentStoryboard) {
+				setStatus(STATUS.WAITING)
+				handleVoiceCommand(cleanedTranscript)
+			}
+			resetTranscript()
 		} else if (status === STATUS.LISTENING && lower.includes(HOT_WORDS.CLEAR_TRANSCRIPT)) {
-			console.log('clear triggered')
 			resetTranscript()
 		}
 	}, [transcript, currentStoryboard])
 
 	// Function when there are multiple storyboards
-	// function handleVoiceCommand(command) {
-	// 	const parsed = parseVoiceCommand(command)
-	// 	console.log('Parsed command:', parsed)
-	// 	if (!parsed) return
+	function handleVoiceCommand(command) {
+		const parsed = parseVoiceCommand(command)
+		if (!parsed) return
 
-	// 	if (parsed.context === 'storyboard') {
-	// 		const selected = storyboards.find((sb) => sb.id === parseInt(parsed.number))
-	// 		console.log(selected)
-	// 		if (selected) {
-	// 			console.log('Selected storyboard:', selected)
-	// 			setCurrentStoryboard(selected)
-	// 			resetTranscript()
-	// 		}
-	// 	}
-	// }
+		if (parsed.context === 'storyboard') {
+			const selected = storyboards.find((sb) => sb.id === parseInt(parsed.number))
+			if (selected) {
+				setCurrentStoryboard(selected)
+				resetTranscript()
+			}
+		}
+	}
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const charImg = await fetchCharacter(participant)
-				const roboImg = await fetchRobot(participant)
-				console.log('Avatar image:', charImg)
-				console.log('Robot image:', roboImg)
-				if (charImg.length > 0) {
-					setCharacterImage(charImg[0].downloadURL)
-				}
-				if (roboImg.length > 0) {
-					setRobotImage(roboImg[0].downloadURL)
-				}
 				let sbsImages = []
 				for (let i = 0; i < storyboards.length; i++) {
-					let results = await fetchImagesBySelection(participant, storyboards[i].id)
+					let results = await fetchSceneImagesBySelection(participant, storyboards[i].id)
 					const imagesByScene = {}
 					results.forEach((image) => {
 						if (!imagesByScene[image.sceneId]) {
@@ -245,52 +149,111 @@ export function AllStoryBoards({ storyboards }) {
 					})
 					sbsImages.push(imagesByScene)
 				}
-				console.log(sbsImages)
 				setSelectedImages(sbsImages)
 			} catch (error) {
 				console.error('Error:', error)
 			}
 		}
 		fetchData()
-	}, [character, robot])
+	}, [currentStoryboard])
 
 	function backFunc() {
 		setCurrentStoryboard(null)
-		setCharacter(false)
-		setRobot(false)
-    setStatus(STATUS.WAITING)
+		setStatus(STATUS.WAITING)
+	}
+
+	function onInfo() {
+		setShowInfo(!showInfo)
 	}
 
 	return (
 		<div style={{ height: '100vh' }}>
-			{!currentStoryboard && !character && !robot ? (
-				<div style={{ border: '5px solid #ffb000', borderRadius: '8px', padding: '10px' }}>
+			{!currentStoryboard ? (
+				<div style={{ border: '5px solid #000', borderRadius: '8px', padding: '10px' }}>
 					<div className="status-bar">
+						<h4 className="pagename" style={{ border: '5px solid #000' }}>
+							Main Menu
+						</h4>
 						<p className="participant">
-							<strong>Participant:</strong>
+							<strong>Participant: </strong>
 							{participant}
 						</p>
-						{/* <p className='voice'><strong>Voice On:</strong> {listening ? 'Yes' : 'No'}</p> */}
 						<p
 							className="status"
 							style={{
 								backgroundColor: status === STATUS.LISTENING ? '#0BDA51' : 'white',
 							}}
 						>
-							<strong>Status:</strong> {status}
+							<strong>Status: </strong> {status}
 						</p>
+						<button onClick={onInfo} className="participant">
+							<FontAwesomeIcon icon={faCircleInfo} style={{ marginRight: '10px' }} />
+							<u>start listening</u>{' '}
+							<FontAwesomeIcon
+								icon={faArrowRight}
+								style={{ marginLeft: '10px', marginRight: '10px' }}
+							/>{' '}
+							<i>help</i>{' '}
+							<FontAwesomeIcon
+								icon={faArrowRight}
+								style={{ marginLeft: '10px', marginRight: '10px' }}
+							/>{' '}
+							<u>stop listening</u>
+						</button>
 					</div>
+					{showInfo && (
+						<div className="box fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+							<div className="bg-white p-6 rounded-2xl shadow-lg max-w-sm w-11/12 relative">
+								<p style={{ marginLeft: '10px' }}>
+									<FontAwesomeIcon
+										icon={faCircleInfo}
+										style={{ marginRight: '10px' }}
+									/>
+									<u>start listening</u> <FontAwesomeIcon icon={faArrowRight} />{' '}
+									<i
+										style={{
+											border: '#FFC20A 5px solid',
+											padding: '2px',
+											backgroundColor: '#FFC20A',
+										}}
+									>
+										Action
+									</i>{' '}
+									<FontAwesomeIcon icon={faArrowRight} /> <u>stop listening</u>
+								</p>
+								<ul className="boxMini">
+									<li>
+										<i>
+											<u>go to storyboard [number]</u> to navigate to that
+											storyboard
+										</i>
+									</li>
+									<li>
+										<i>
+											<u>clear transcript</u> to clear and restart
+										</i>
+									</li>
+									<li>
+										<i>
+											<u>scroll [left/right]</u> to view hidden storyboards
+										</i>
+									</li>
+									<li>
+										<i>
+											<u>close help</u> to close the help screen
+										</i>
+									</li>
+								</ul>
+							</div>
+						</div>
+					)}
 					<div className="container-lr">
 						<div className="left">
-							<h4>Main Menu</h4>
 							{status === STATUS.LISTENING ? (
 								<>
 									<p>
 										<strong>Transcript:</strong> {transcript}
 									</p>{' '}
-									{/* <p>
-										<strong>Captured Prompt:</strong> {captured}
-									</p> */}
 								</>
 							) : (
 								''
@@ -298,7 +261,7 @@ export function AllStoryBoards({ storyboards }) {
 
 							<div
 								style={{
-									maxWidth: '60vw',
+									maxWidth: '75vw',
 									overflow: 'hidden',
 									marginTop: '10px',
 								}}
@@ -313,6 +276,66 @@ export function AllStoryBoards({ storyboards }) {
 									removeArrowOnDeviceType={[]}
 									customTransition="all 0.3s ease-in-out"
 									transitionDuration={300}
+									customLeftArrow={
+										<button
+											aria-label="Previous"
+											style={{
+												position: 'absolute',
+												left: 0,
+												top: '50%',
+												transform: 'translateY(-50%)',
+												backgroundColor: 'white',
+												border: '1px solid #ccc',
+												borderRadius: '50%',
+												padding: '6px',
+												cursor: 'pointer',
+												boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+												zIndex: 2,
+											}}
+											className="carousel-left-arrow"
+										>
+											<FontAwesomeIcon
+												className="go-back-button"
+												icon={faCircleLeft}
+												style={{
+													border: 'none',
+													background: 'transparent',
+													cursor: 'pointer',
+													marginBottom: '4px',
+												}}
+											/>
+										</button>
+									}
+									customRightArrow={
+										<button
+											aria-label="Next"
+											style={{
+												position: 'absolute',
+												right: 0,
+												top: '50%',
+												transform: 'translateY(-50%)',
+												backgroundColor: 'white',
+												border: '1px solid #ccc',
+												borderRadius: '50%',
+												padding: '6px',
+												cursor: 'pointer',
+												boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+												zIndex: 2,
+											}}
+											className="carousel-right-arrow"
+										>
+											<FontAwesomeIcon
+												className="go-back-button"
+												icon={faCircleRight}
+												style={{
+													border: 'none',
+													background: 'transparent',
+													cursor: 'pointer',
+													marginBottom: '4px',
+												}}
+											/>
+										</button>
+									}
 								>
 									{storyboards.map((sb) => (
 										<div
@@ -327,7 +350,9 @@ export function AllStoryBoards({ storyboards }) {
 											}}
 										>
 											<p>
-												<strong>{sb.type}</strong>
+												<strong>
+													Storyboard {sb.id}: {sb.title}
+												</strong>
 											</p>
 											<div
 												style={{
@@ -336,34 +361,37 @@ export function AllStoryBoards({ storyboards }) {
 													gap: '10px',
 												}}
 											>
-												{selectedImages[sb.id - 1] &&
-												Object.keys(selectedImages[sb.id - 1]).length >
-													0 ? (
-													Object.keys(selectedImages[sb.id - 1]).map(
-														(key, index) => {
-															const sceneImages =
-																selectedImages[sb.id - 1][key]
-															return Array.isArray(sceneImages) &&
-																sceneImages[0] ? (
-																<img
-																	key={index}
-																	src={sceneImages[0].downloadURL}
-																	alt={`Scene ${index}`}
-																	style={{
-																		width: '100%', // Will auto-fit column width
-																		height: 'auto',
-																		objectFit: 'cover',
-																	}}
-																/>
-															) : (
-																<p key={index}>
-																	Invalid image at index {key}
-																</p>
-															)
-														}
-													)
-												) : (
-													<p>No images available</p>
+												{storyboards[sb.id - 1].scenes.map(
+													(scene, index) =>
+														selectedImages[sb.id - 1] &&
+														selectedImages[sb.id - 1][scene.id] &&
+														selectedImages[sb.id - 1][scene.id][0] ? (
+															<img
+																key={index}
+																src={
+																	selectedImages[sb.id - 1][
+																		scene.id
+																	][0].downloadURL
+																}
+																alt={`Scene ${index}`}
+																style={{
+																	width: '100%', // Will auto-fit column width
+																	height: 'auto',
+																	objectFit: 'cover',
+																}}
+															/>
+														) : (
+															<img
+																key={index}
+																src={fallbackImage}
+																alt={`Scene ${index}`}
+																style={{
+																	width: '100%', // Will auto-fit column width
+																	height: 'auto',
+																	objectFit: 'cover',
+																}}
+															/>
+														)
 												)}
 											</div>
 
@@ -382,69 +410,12 @@ export function AllStoryBoards({ storyboards }) {
 								</Carousel>
 							</div>
 						</div>
-						<div className="right">
-							<div
-								style={{
-									padding: '10px',
-									margin: '10px',
-									border: '1px solid #ccc',
-									borderRadius: '8px',
-									width: '180px',
-									height: 'auto',
-									display: 'inline-block',
-								}}
-							>
-								<p>
-									<strong>Avatar</strong>
-								</p>
-								<img src={characterImage} className="scene-image" width="100%" />
-								<button
-									className="scene-button1"
-									onClick={() => setCharacter(true)}
-								>
-									Go
-								</button>
-							</div>
-							<div
-								style={{
-									padding: '10px',
-									margin: '10px',
-									border: '1px solid #ccc',
-									borderRadius: '8px',
-									width: '180px',
-									height: 'auto',
-									display: 'inline-block',
-								}}
-							>
-								<p>
-									<strong>Robot</strong>
-								</p>
-								<img src={robotImage} className="scene-image" width="100%" />
-								<button className="scene-button1" onClick={() => setRobot(true)}>
-									Go
-								</button>
-							</div>
-						</div>
 					</div>
 				</div>
-			) : !character && !robot ? (
+			) : (
 				<StoryBoard
 					participant={participant}
 					storyboard={currentStoryboard}
-					onBack={() => backFunc()}
-				/>
-			) : !robot ? (
-				<IndividualScene
-					participant={participant}
-					storyboard={{ id: 0 }}
-					scene={{ id: 0 }}
-					onBack={() => backFunc()}
-				/>
-			) : (
-				<IndividualScene
-					participant={participant}
-					storyboard={{ id: 0.1 }}
-					scene={{ id: 0.1 }}
 					onBack={() => backFunc()}
 				/>
 			)}

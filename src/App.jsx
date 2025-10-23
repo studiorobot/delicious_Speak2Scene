@@ -5,10 +5,10 @@ import { WelcomeScreen } from './Welcome'
 import { AllStoryBoards } from './AllStoryBoards'
 import { Researcher } from './Researcher'
 import { ResearcherParticipantView } from './ResearcherParticipantView'
-import { allStoryboards } from './storyboards'
+import { allStoryboards } from './constants'
 
 // Style imports
-import './App.css'
+import './styles/App.css'
 
 function App() {
 	// Keeps the screen awake as long as the web app is open
@@ -48,7 +48,10 @@ function App() {
 			<Route path="/" element={<WelcomeScreen />} />
 			<Route path="/:participant" element={<AllStoryBoards storyboards={allStoryboards} />} />
 			<Route path="/researcher" element={<Researcher />} />
-			<Route path="/researcher/:participant" element={<ResearcherParticipantView storyboards={allStoryboards}/>} />
+			<Route
+				path="/researcher/:participant"
+				element={<ResearcherParticipantView storyboards={allStoryboards} />}
+			/>
 		</Routes>
 	)
 }

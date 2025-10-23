@@ -1,62 +1,10 @@
-// import nlp from 'compromise'
-// import Fuse from 'fuse.js'
-
-// const validContexts = [
-// 	'storyboard',
-// 	'scene',
-// 	'change image',
-// 	'go back',
-// 	'scroll right',
-// 	'scroll left',
-// ]
-// const fuse = new Fuse(validContexts, { threshold: 0.3 }) // tighten threshold a bit
-
-// export function parseVoiceCommand(transcript) {
-// 	const lower = transcript.toLowerCase()
-// 	const doc = nlp(lower)
-
-// 	// Extract number
-// 	let number = null
-// 	const numbers = doc.numbers().toNumber().out('array')
-// 	if (numbers.length > 0) {
-// 		number = numbers[0]
-// 	}
-
-// 	// Extract context word (storyboard or scene)
-// 	let context = null
-// 	const words = lower.split(/\s+/)
-// 	for (let word of words) {
-// 		if (validContexts.includes(word)) {
-// 			context = word // exact match!
-// 			break
-// 		}
-// 	}
-
-// 	if (!context) {
-// 		// fallback to fuzzy search
-// 		for (let word of words) {
-// 			const match = fuse.search(word)
-// 			if (match.length > 0) {
-// 				context = match[0].item
-// 				break
-// 			}
-// 		}
-// 	}
-
-// 	if (context && number !== null) {
-// 		return { context, number }
-// 	}
-
-// 	return null // couldn't understand the command
-// }
-
 import nlp from 'compromise'
 import Fuse from 'fuse.js'
 
 const validContexts = [
 	'storyboard',
 	'scene',
-	'moment',
+	'character',
 	'change image',
 	'go back',
 	'scroll right',

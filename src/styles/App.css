@@ -49,9 +49,9 @@
 
 
 
-/* @media (max-width: 1023px) {
+@media (max-width: 1023px) {
   #root::before {
-    content: "Please use a larger screen to access this application.";
+    content: "Please use a larger screen (1024px or higher) for proper functioning of this application.";
     display: block;
     font-size: 1.5rem;
     color: red;
@@ -62,7 +62,7 @@
   #root {
     display: none;
   }
-} */
+}
 
 #root {
   display: block;
@@ -162,13 +162,13 @@ h1 {
 
 .left {
   display: inline-block;
-  width: 65%;
+  width: 79%;
 }
 
 .right {
-  border-left: #ffb000 5px solid;
+  border-left: #000 5px dashed;
   display: inline-block;
-  width: 35%;
+  width: 21%;
   /* background-color: #C6E2FF; */
   /* border-radius: 10px; */
 }
@@ -190,9 +190,18 @@ h1 {
 }
 
 .box {
+  display: block;
+  width: 50%;
   border-radius: 10px;
-  border: #648fff 5px solid;
+  border: #000 2px solid;
   margin-left: 10px;
+}
+
+.boxMini {
+  width: 80%;
+  margin-left: 10px;
+  background-color: #FFC20A;
+  border: #FFC20A 5px solid;
 }
 
 .rightIS {
@@ -254,34 +263,17 @@ body {
 .scene-button1 {
   margin-top: 0.75rem;
   padding: 0.5rem 1rem;
-  background-color: #ffb000;
-  color: white;
-  border: none;
+  border-color: #000;
+  color: #000;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .scene-button2 {
-  margin-top: 0.75rem;
+  margin-top: 4px;
   padding: 0.5rem 1rem;
-  background-color: #dc267f;
-  color: white;
-  border: none;
+  border-color: #000;
+  color: #000;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.react-multiple-carousel__arrow {
-  z-index: 10;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: red !important;
-}
-
-.react-multiple-carousel__arrow--left {
-  left: -20px;
-}
-
-.react-multiple-carousel__arrow--right {
-  right: -20px;
 }
