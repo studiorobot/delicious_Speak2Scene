@@ -1,6 +1,10 @@
 # <span style="font-variant:small-caps;">Speak2Scene</span>
+## Abstract
+Storyboarding is a method that supports participatory design by using a series of images to visualize one's experience, allowing them to communicate ideas both visually and through text. Traditionally, storyboarding involves hand-sketching, a modality inaccessible for people who have disabilities affecting their upper limbs (e.g., quadriplegia). This restricts their engagement in participatory design to verbal interviews/interactions. We present \textsc{Speak2Scene}, an open-source voice-to-image storyboarding tool powered by Generative Artificial Intelligence that adheres to accessibility standards, to be used as a research tool for inclusive participatory design. Our key-insight is that by furthering participatory design research for people with disabilities with the inclusion of visual methods such as storyboarding, they can express their needs, views, and opinions in complementary ways of verbal language, enabling a more nuanced understanding of this population. We tested \textsc{Speak2Scene} with 7 participants as part of a speculative co-design study and concluded that it can empower creative expression, support inclusion, and provide a joyful partcipatory design experience.  
 
 ## Usage
+Below, there is an outline on how to make use of Speak2Scene without making further development to the software:
+
 ### Requirements
 - 13-15 inch or higher laptop/computer screen
 - Google Chrome browser (Make sure to enable permissions for microphone access)
