@@ -1,8 +1,5 @@
 # <span style="font-variant:small-caps;">Speak2Scene</span>
 
-## What is <span style="font-variant:small-caps;">Speak2Scene</span>?
-<span style="font-variant:small-caps;">Speak2Scene</span> is a voice-based tool that leverages GPT model to generate images to create a storyboard. This is a tool designed for participatory design and HCI research. It was originally developed for a speculative co-design study that was submitted to CHI 2026. The purpose of the study was to speculate social dining scenarios with the presence of a robot-assisted feeding system. This version generalizes the tool for broader research and educational use.
-
 ## Usage
 
 ### Repository Structure
