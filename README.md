@@ -174,7 +174,7 @@ Speak2Scene/
 │
 ├── README.md                               # This file
 │
-├── LICENSE                                 # Open source license (MIT, Apache 2.0, etc.)
+├── LICENSE.txt                             # Open source license (MIT)
 │
 └── CITATION.cff                            # Citation metadata (for SoftwareX / Zenodo)
 
