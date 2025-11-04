@@ -140,7 +140,45 @@ export const endpoint_read_image = 'https://api.openai.com/v1/chat/completions'
 // Model chosen to read the image
 export const read_image_model = 'gpt-4o'
 ```
-## Examples
+
+## Repository Structure
+To make changes to the software, follow the same instructions outlined [here](https://github.com/studiorobot/Speak2Scene/tree/v1-softwarex?tab=readme-ov-file#speak2scene) to clone the repository. Below, is the repository outline for the software.
+
+```
+Speak2Scene/
+│
+├── server/
+│   ├── server.js                           # Server Routes to make OpenAI API calls
+├── src/                  
+│   ├── api/              
+│       └── openai.jsx                      # Frontend function defintions to interact with OpenAI API through `server.js`
+│   ├── firebase/
+│       ├── firebase.jsx                    # Firebase configuration file
+│       └── firebase_helper_functions.jsx   # Function definitions interacting with Firebase DB
+│   ├── styles/
+│       ├── App.css                         # Overall application stylesheet
+│       ├── index.css                      
+│       └── questionmark.jpg
+│   ├── voice/
+│       └── voiceParser.jsx                 # Function definition to parse voice commands
+│   ├── AllStoryboards.jsx                  # Renders all the storyboards
+│   ├── App.jsx                             # "main" application that renders Welcome.jsx and AllStoryboards.jsx
+│   ├── Character.jsx                       # Renders individual panel to create and view character
+│   ├── IndividualScene.jsx.                # Renders individual scene to create and view images for the scene
+│   ├── Storyboard.jsx                      # Renders a storyboard with the ability to navigate into individual scene or character
+│   ├── Welcome.jsx                         # Welcome screen for researchers to type in the name of their participant
+│   ├── constants.jsx                       # Constants (storyboard, keywords, endpoints for OpenAI)
+│   └── main.jsx
+│
+├── ...                                     # ReactJS requirements, firebase, gitignore, etc.
+│
+├── README.md                               # This file
+│
+├── LICENSE                                 # Open source license (MIT, Apache 2.0, etc.)
+│
+└── CITATION.cff                            # Citation metadata (for SoftwareX / Zenodo)
+
+```
 
 ## Citation
 
