@@ -7,7 +7,7 @@
 
 ### Repository Structure
 ```
-delicious_Speak2Scene/
+Speak2Scene/
 │
 ├── server/
 │   ├── server.js                           # Server Routes to make OpenAI API calls
@@ -67,11 +67,11 @@ You will need an OpenAI API key which you can acquire through the OpenAI dashboa
 5. Create a database: `Product Categories > Firestore Database`. Default options should work. Ensure that you start in `test` mode.
 
 ### Installation
-1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_Speak2Scene.git` and For https (use this if you don't have ssh configured with GitHub): `git clone https://github.com/studiorobot/delicious_Speak2Scene.git` to a local folder of your choice. If this is successful, then you will see `delicious_Speak2Scene` folder created in your directory.
-2. Change directory into the app: `cd delicious_Speak2Scene`
+1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/Speak2Scene.git` and For https (use this if you don't have ssh configured with GitHub): `git clone https://github.com/studiorobot/Speak2Scene.git` to a local folder of your choice. If this is successful, then you will see `Speak2Scene` folder created in your directory.
+2. Change directory into the app: `cd Speak2Scene`
 3. Install all the relevant packages: `npm install`
 > If you get an error `npm: command not found`, then navigate to a new terminal window and follow the steps to install [Node](#node). Then make sure to restart the terminal and start from Step 2 of the Installation procedure.
-4. Create a `.env` file within the `delicious_userstudy-app` folder. Refer to [OpenAI API](#openai-api) and [Firebase](#firebase) sections to get the API keys and other details and add them into the `.env` file by following the format outlined [here](#env-file).
+4. Create a `.env` file within the `Speak2Scene` folder. Refer to [OpenAI API](#openai-api) and [Firebase](#firebase) sections to get the API keys and other details and add them into the `.env` file by following the format outlined [here](#env-file).
 5. Perform: `npm run dev`. This should start a server and the app on your computer with a localhost url. Open the localhost url in your web browser (tested with Google Chrome browser). It should open the app with a `[researcher]` screen. You can enter a name and it will take you to the landing page.
 > If the application starts correctly, you should notice something that looks like the following in the terminal (Note: It's okay if not each line is exactly the same!):
 > ```
@@ -85,7 +85,7 @@ You will need an OpenAI API key which you can acquire through the OpenAI dashboa
 > [0] > userstudy-app@0.0.0 dev:frontend
 > [0] > vite
 > [0] 
-> [1] /../delicious_userstudy-app/.env
+> [1] /../Speak2Scene/.env
 > [1] [dotenv@17.2.3] injecting env (12) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
 > [1] OPEN_AI_API_KEY set: true
 > [1] Server running on port 3000
@@ -114,7 +114,7 @@ VITE_FIREBASE_STORAGE_FOLDER=<FOLDER NAME YOU WANT TO STORE IMAGES IN DATASTORE>
 ```
 
 ### `constants.jsx` file
-Edit `delicious_Speak2Scene/constants.jsx` to your specific application. Fill out the `allStoryboards` section with your specific storyboards and scenes pertaining to them.
+Edit `Speak2Scene/constants.jsx` to your specific application. Fill out the `allStoryboards` section with your specific storyboards and scenes pertaining to them.
 ```
 export const allStoryboards = [
   {
