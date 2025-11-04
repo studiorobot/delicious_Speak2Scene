@@ -186,7 +186,7 @@ Speak2Scene/
 [MIT License](https://opensource.org/license/MIT)
 
 ## Acknowledgements
-Thank you to Ugne Aleksandra Morkute, Connor Williams, Francesca Cocchella, Grace Pan, and Laura Murphy for testing and providing feedback on versions of \textsc{Speak2Scene}.
+Thank you to Ugne Aleksandra Morkute, Connor Williams, Francesca Cocchella, Grace Pan, and Laura Murphy for testing and providing feedback on versions of Speak2Scene.
 
 ## Contact
 Atharva S. Kashyap (katharva@umich.edu; GitHub: [@atharva-kashyap](https://github.com/atharva-kashyap))
