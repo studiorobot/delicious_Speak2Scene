@@ -1,44 +1,6 @@
 # <span style="font-variant:small-caps;">Speak2Scene</span>
 
 ## Usage
-
-### Repository Structure
-```
-Speak2Scene/
-│
-├── server/
-│   ├── server.js                           # Server Routes to make OpenAI API calls
-├── src/                  
-│   ├── api/              
-│       └── openai.jsx                      # Frontend function defintions to interact with OpenAI API through `server.js`
-│   ├── firebase/
-│       ├── firebase.jsx                    # Firebase configuration file
-│       └── firebase_helper_functions.jsx   # Function definitions interacting with Firebase DB
-│   ├── styles/
-│       ├── App.css                         # Overall application stylesheet
-│       ├── index.css                      
-│       └── questionmark.jpg
-│   ├── voice/
-│       └── voiceParser.jsx                 # Function definition to parse voice commands
-│   ├── AllStoryboards.jsx
-│   ├── App.jsx
-│   ├── Character.jsx
-│   ├── IndividualScene.jsx
-│   ├── Storyboard.jsx
-│   ├── Welcome.jsx
-│   ├── constants.jsx                       # Constants (storyboard, keywords, endpoints for OpenAI)
-│   └── main.jsx
-│
-├── ...                                     # ReactJS requirements, firebase, gitignore, etc.
-│
-├── README.md                               # This file
-│
-├── LICENSE                                 # Open source license (MIT, Apache 2.0, etc.)
-│
-└── CITATION.cff                            # Citation metadata (for SoftwareX / Zenodo)
-
-```
-
 ### Requirements
 - 13-15 inch or higher laptop/computer screen
 - Google Chrome browser (Make sure to enable permissions for microphone access)
