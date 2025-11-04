@@ -183,7 +183,7 @@ Speak2Scene/
 ## Citation
 
 ## License
-(MIT License)[https://opensource.org/license/MIT]
+[MIT License](https://opensource.org/license/MIT)
 
 ## Acknowledgements
 
