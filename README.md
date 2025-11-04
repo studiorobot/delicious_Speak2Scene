@@ -43,6 +43,7 @@ delicious_Speak2Scene/
 ```
 
 ### Requirements
+- 13-15 inch or higher laptop/computer screen
 - Google Chrome browser (Make sure to enable permissions for microphone access)
 - Terminal or Command Prompt
 - [Node](#node)
