@@ -189,4 +189,7 @@ Speak2Scene/
 Thank you to Ugne Aleksandra Morkute, Connor Williams, Francesca Cocchella, Grace Pan, and Laura Murphy for testing and providing feedback on versions of Speak2Scene.
 
 ## Contact
-Atharva S. Kashyap (katharva@umich.edu; GitHub: [@atharva-kashyap](https://github.com/atharva-kashyap))
+- Atharva S. Kashyap (katharva@umich.edu; GitHub: [@atharva-kashyap](https://github.com/atharva-kashyap))
+- Patricia Alves-Oliveira (robopati@umich.edu; Website: [https://patricialvesoliveira.com/](https://patricialvesoliveira.com/))
+
+<img width="300" height="auto" alt="robotstudio" src="https://github.com/user-attachments/assets/d610b7b2-f736-46db-a3ac-7be51732604d" />
