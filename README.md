@@ -1,50 +1,12 @@
 # <span style="font-variant:small-caps;">Speak2Scene</span>
-
-## What is <span style="font-variant:small-caps;">Speak2Scene</span>?
-<span style="font-variant:small-caps;">Speak2Scene</span> is a voice-based tool that leverages GPT model to generate images to create a storyboard. This is a tool designed for participatory design and HCI research. It was originally developed for a speculative co-design study that was submitted to CHI 2026. The purpose of the study was to speculate social dining scenarios with the presence of a robot-assisted feeding system. This version generalizes the tool for broader research and educational use.
+## Abstract
+Storyboarding is a method that supports participatory design by using a series of images to visualize one's experience, allowing them to communicate ideas both visually and through text. Traditionally, storyboarding involves hand-sketching, a modality inaccessible for people who have disabilities affecting their upper limbs (e.g., quadriplegia). This restricts their engagement in participatory design to verbal interviews/interactions. We present Speak2Scene, an open-source voice-to-image storyboarding tool powered by Generative Artificial Intelligence that adheres to accessibility standards, to be used as a research tool for inclusive participatory design. Our key-insight is that by furthering participatory design research for people with disabilities with the inclusion of visual methods such as storyboarding, they can express their needs, views, and opinions in complementary ways of verbal language, enabling a more nuanced understanding of this population. We tested Speak2Scene with 7 participants as part of a speculative co-design study and concluded that it can empower creative expression, support inclusion, and provide a joyful partcipatory design experience.  
 
 ## Usage
-
-### Repository Structure
-```
-delicious_Speak2Scene/
-│
-├── server/
-│   ├── server.js                           # Server Routes to make OpenAI API calls
-├── src/                  
-│   ├── api/              
-│       └── openai.jsx                      # Frontend function defintions to interact with OpenAI API through `server.js`
-│   ├── firebase/
-│       ├── firebase.jsx                    # Firebase configuration file
-│       └── firebase_helper_functions.jsx   # Function definitions interacting with Firebase DB
-│   ├── styles/
-│       ├── App.css                         # Overall application stylesheet
-│       ├── index.css                      
-│       └── questionmark.jpg
-│   ├── voice/
-│       └── voiceParser.jsx                 # Function definition to parse voice commands
-│   ├── AllStoryboards.jsx
-│   ├── App.jsx
-│   ├── Character.jsx
-│   ├── IndividualScene.jsx
-│   ├── Researcher.jsx
-│   ├── ResearcherParticipantView.jsx
-│   ├── Storyboard.jsx
-│   ├── Welcome.jsx
-│   ├── constants.jsx                       # Constants (storyboard, keywords, endpoints for OpenAI)
-│   └── main.jsx
-│
-├── ...                                     # ReactJS requirements, firebase, gitignore, etc.
-│
-├── README.md                               # This file
-│
-├── LICENSE                                 # Open source license (MIT, Apache 2.0, etc.)
-│
-└── CITATION.cff                            # Citation metadata (for SoftwareX / Zenodo)
-
-```
+Below, there is an outline on how to make use of Speak2Scene without making further development to the software:
 
 ### Requirements
+- 13-15 inch or higher laptop/computer screen
 - Google Chrome browser (Make sure to enable permissions for microphone access)
 - Terminal or Command Prompt
 - [Node](#node)
@@ -68,11 +30,11 @@ You will need an OpenAI API key which you can acquire through the OpenAI dashboa
 5. Create a database: `Product Categories > Firestore Database`. Default options should work. Ensure that you start in `test` mode.
 
 ### Installation
-1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/delicious_Speak2Scene.git` and For https (use this if you don't have ssh configured with GitHub): `git clone https://github.com/studiorobot/delicious_Speak2Scene.git` to a local folder of your choice. If this is successful, then you will see `delicious_Speak2Scene` folder created in your directory.
-2. Change directory into the app: `cd delicious_Speak2Scene`
+1. Clone this repository: For ssh: `git clone git@github.com:studiorobot/Speak2Scene.git` and For https (use this if you don't have ssh configured with GitHub): `git clone https://github.com/studiorobot/Speak2Scene.git` to a local folder of your choice. If this is successful, then you will see `Speak2Scene` folder created in your directory.
+2. Change directory into the app: `cd Speak2Scene`
 3. Install all the relevant packages: `npm install`
 > If you get an error `npm: command not found`, then navigate to a new terminal window and follow the steps to install [Node](#node). Then make sure to restart the terminal and start from Step 2 of the Installation procedure.
-4. Create a `.env` file within the `delicious_userstudy-app` folder. Refer to [OpenAI API](#openai-api) and [Firebase](#firebase) sections to get the API keys and other details and add them into the `.env` file by following the format outlined [here](#env-file).
+4. Create a `.env` file within the `Speak2Scene` folder. Refer to [OpenAI API](#openai-api) and [Firebase](#firebase) sections to get the API keys and other details and add them into the `.env` file by following the format outlined [here](#env-file).
 5. Perform: `npm run dev`. This should start a server and the app on your computer with a localhost url. Open the localhost url in your web browser (tested with Google Chrome browser). It should open the app with a `[researcher]` screen. You can enter a name and it will take you to the landing page.
 > If the application starts correctly, you should notice something that looks like the following in the terminal (Note: It's okay if not each line is exactly the same!):
 > ```
@@ -86,7 +48,7 @@ You will need an OpenAI API key which you can acquire through the OpenAI dashboa
 > [0] > userstudy-app@0.0.0 dev:frontend
 > [0] > vite
 > [0] 
-> [1] /../delicious_userstudy-app/.env
+> [1] /../Speak2Scene/.env
 > [1] [dotenv@17.2.3] injecting env (12) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
 > [1] OPEN_AI_API_KEY set: true
 > [1] Server running on port 3000
@@ -115,7 +77,7 @@ VITE_FIREBASE_STORAGE_FOLDER=<FOLDER NAME YOU WANT TO STORE IMAGES IN DATASTORE>
 ```
 
 ### `constants.jsx` file
-Edit `delicious_Speak2Scene/constants.jsx` to your specific application. Fill out the `allStoryboards` section with your specific storyboards and scenes pertaining to them.
+Edit `Speak2Scene/constants.jsx` to your specific application. Fill out the `allStoryboards` section with your specific storyboards and scenes pertaining to them.
 ```
 export const allStoryboards = [
   {
@@ -178,13 +140,56 @@ export const endpoint_read_image = 'https://api.openai.com/v1/chat/completions'
 // Model chosen to read the image
 export const read_image_model = 'gpt-4o'
 ```
-## Examples
+
+## Repository Structure
+To make changes to the software, follow the same instructions outlined [here](https://github.com/studiorobot/Speak2Scene/tree/v1-softwarex?tab=readme-ov-file#speak2scene) to clone the repository. Below, is the repository outline for the software.
+
+```
+Speak2Scene/
+│
+├── server/
+│   ├── server.js                           # Server Routes to make OpenAI API calls
+├── src/                  
+│   ├── api/              
+│       └── openai.jsx                      # Frontend function defintions to interact with OpenAI API through `server.js`
+│   ├── firebase/
+│       ├── firebase.jsx                    # Firebase configuration file
+│       └── firebase_helper_functions.jsx   # Function definitions interacting with Firebase DB
+│   ├── styles/
+│       ├── App.css                         # Overall application stylesheet
+│       ├── index.css                      
+│       └── questionmark.jpg
+│   ├── voice/
+│       └── voiceParser.jsx                 # Function definition to parse voice commands
+│   ├── AllStoryboards.jsx                  # Renders all the storyboards
+│   ├── App.jsx                             # "main" application that renders Welcome.jsx and AllStoryboards.jsx
+│   ├── Character.jsx                       # Renders individual panel to create and view character
+│   ├── IndividualScene.jsx.                # Renders individual scene to create and view images for the scene
+│   ├── Storyboard.jsx                      # Renders a storyboard with the ability to navigate into individual scene or character
+│   ├── Welcome.jsx                         # Welcome screen for researchers to type in the name of their participant
+│   ├── constants.jsx                       # Constants (storyboard, keywords, endpoints for OpenAI)
+│   └── main.jsx
+│
+├── ...                                     # ReactJS requirements, firebase, gitignore, etc.
+│
+├── README.md                               # This file
+│
+├── LICENSE.txt                             # Open source license (MIT)
+│
+└── CITATION.cff                            # Citation metadata (for SoftwareX / Zenodo)
+
+```
 
 ## Citation
 
 ## License
+[MIT License](https://opensource.org/license/MIT)
 
 ## Acknowledgements
+Thank you to Ugne Aleksandra Morkute, Connor Williams, Francesca Cocchella, Grace Pan, and Laura Murphy for testing and providing feedback on versions of Speak2Scene.
 
 ## Contact
-Atharva S. Kashyap (katharva@umich.edu; GitHub: [@atharva-kashyap](https://github.com/atharva-kashyap))
+- Atharva S. Kashyap (katharva@umich.edu; GitHub: [@atharva-kashyap](https://github.com/atharva-kashyap))
+- Patricia Alves-Oliveira (robopati@umich.edu; Website: [https://patricialvesoliveira.com/](https://patricialvesoliveira.com/))
+
+<img width="300" height="auto" alt="robotstudio" src="https://github.com/user-attachments/assets/d610b7b2-f736-46db-a3ac-7be51732604d" />
